@@ -147,7 +147,7 @@
           if (div) div.style.display = 'none';
         });
 
-        // 3. Diccionario de Títulos de Sección
+        // 3. Títulos de Sección
         const titulos = {
           'dashboard': 'Dashboard',
           'categorias': 'Categorías',
@@ -187,29 +187,19 @@
         else if (vista === 'proveedores') { cargarProveedores(); } 
         else if (vista === 'compras') { cargarCompras(); } 
         else if (vista === 'cotizaciones') { cargarProformas(); } 
-        else {
-          if(!vistaActiva) {
-              mostrarAlerta(`El módulo de ${titulos[vista]} está en construcción. Próximo a programar.`, "info");
-          }
-        }
-      } catch (error) {
-        console.error("Error al cargar la vista:", error);
-      }
-
-      // 6. Cierre del menú móvil (Independiente y protegido)
-      try {
+        
+        // 6. Cierre Automático Exclusivo para Celulares
         if (window.innerWidth < 992) {
-          const menuLateral = document.getElementById('sidebarOffcanvas');
-          if (menuLateral && typeof bootstrap !== 'undefined') {
-             const botonCerrar = menuLateral.querySelector('.btn-close');
-             if (botonCerrar) {
-                // Pequeño retraso para que la interfaz se actualice antes de cerrar
-                setTimeout(() => botonCerrar.click(), 100);
-             }
-          }
+          setTimeout(() => {
+            const btnCerrar = document.querySelector('#sidebarOffcanvas .btn-close');
+            if (btnCerrar) {
+              btnCerrar.click();
+            }
+          }, 50); // Le da tiempo al procesador del teléfono de dibujar la vista antes de cerrar el menú
         }
+
       } catch (error) {
-         console.warn("No se pudo cerrar el menú móvil:", error);
+        console.error("Error crítico en cambiarVista:", error);
       }
     }
 
