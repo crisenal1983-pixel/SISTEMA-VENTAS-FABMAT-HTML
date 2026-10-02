@@ -132,69 +132,84 @@
 
 // NAVEGACIÓN ENTRE SECCIONES AMPLIADA
     function cambiarVista(vista, element) {
-      // 1. Ocultar el menú en móviles (Hacerlo PRIMERO para que sea instantáneo)
-      if (window.innerWidth < 992) {
-        const menuLateral = document.getElementById('sidebarOffcanvas');
-        if (menuLateral && typeof bootstrap !== 'undefined') {
-          // Obtener la instancia de Bootstrap y ocultarla
-          const instanciaMenu = bootstrap.Offcanvas.getInstance(menuLateral) || new bootstrap.Offcanvas(menuLateral);
-          instanciaMenu.hide();
+      try {
+        // 1. Actualizar clase activa en el menú
+        document.querySelectorAll('.sidebar .nav-link').forEach(l => l.classList.remove('active'));
+        if (element) {
+           element.classList.add('active');
         }
+
+        // 2. Ocultar todas las vistas
+        const vistas = ['dashboard', 'productos', 'ventas', 'categorias', 'inventario', 'combos', 'compras', 'clientes', 'proveedores', 'reportes', 'usuarios', 'tipo_cambio', 'cotizaciones'];
+        
+        vistas.forEach(v => {
+          const div = document.getElementById(`vista-${v}`);
+          if (div) div.style.display = 'none';
+        });
+
+        // 3. Diccionario de Títulos de Sección
+        const titulos = {
+          'dashboard': 'Dashboard',
+          'categorias': 'Categorías',
+          'productos': 'Productos',
+          'inventario': 'Inventario',
+          'ventas': 'Ventas',
+          'combos': 'Combos de productos',
+          'compras': 'Compras y Abastecimiento',
+          'clientes': 'Clientes',
+          'proveedores': 'Proveedores',
+          'reportes': 'Reportes y Ganancias',
+          'usuarios': 'Usuarios y Roles',
+          'tipo_cambio': 'Tipo de Cambio USD/BOB',
+          'cotizaciones': 'Cotizaciones',
+        };
+
+        const tituloElemento = document.getElementById('seccion-titulo');
+        if (tituloElemento && titulos[vista]) {
+            tituloElemento.innerText = titulos[vista];
+        }
+
+        // 4. Mostrar la vista solicitada
+        const vistaActiva = document.getElementById(`vista-${vista}`);
+        if (vistaActiva) vistaActiva.style.display = 'block';
+
+        // 5. Cargar datos desde el backend
+        if (vista === 'dashboard') { cargarDashboard(); } 
+        else if (vista === 'productos') { cargarProductos(); } 
+        else if (vista === 'ventas') { prepararPOS(); } 
+        else if (vista === 'combos') { cargarCombos(); } 
+        else if (vista === 'reportes') { cargarReportes(); } 
+        else if (vista === 'tipo_cambio') { cargarTipoCambioHistorial(); } 
+        else if (vista === 'usuarios') { cargarUsuarios(); } 
+        else if (vista === 'categorias') { cargarCategorias(); } 
+        else if (vista === 'inventario') { cargarInventario(); } 
+        else if (vista === 'clientes') { cargarClientes(); } 
+        else if (vista === 'proveedores') { cargarProveedores(); } 
+        else if (vista === 'compras') { cargarCompras(); } 
+        else if (vista === 'cotizaciones') { cargarProformas(); } 
+        else {
+          if(!vistaActiva) {
+              mostrarAlerta(`El módulo de ${titulos[vista]} está en construcción. Próximo a programar.`, "info");
+          }
+        }
+      } catch (error) {
+        console.error("Error al cargar la vista:", error);
       }
 
-      // 2. Actualizar clase activa en el menú
-      document.querySelectorAll('.sidebar .nav-link').forEach(l => l.classList.remove('active'));
-      element.classList.add('active');
-
-      // 3. Ocultar todas las vistas
-      const vistas = ['dashboard', 'productos', 'ventas', 'categorias', 'inventario', 'combos', 'compras', 'clientes', 'proveedores', 'reportes', 'usuarios', 'tipo_cambio', 'cotizaciones'];
-      
-      vistas.forEach(v => {
-        const div = document.getElementById(`vista-${v}`);
-        if (div) div.style.display = 'none';
-      });
-
-      // 4. Diccionario de Títulos de Sección
-      const titulos = {
-        'dashboard': 'Dashboard',
-        'categorias': 'Categorías',
-        'productos': 'Productos',
-        'inventario': 'Inventario',
-        'ventas': 'Ventas',
-        'combos': 'Combos de productos',
-        'compras': 'Compras y Abastecimiento',
-        'clientes': 'Clientes',
-        'proveedores': 'Proveedores',
-        'reportes': 'Reportes y Ganancias',
-        'usuarios': 'Usuarios y Roles',
-        'tipo_cambio': 'Tipo de Cambio USD/BOB',
-        'cotizaciones': 'Cotizaciones',
-      };
-
-      document.getElementById('seccion-titulo').innerText = titulos[vista];
-
-      // 5. Mostrar la vista solicitada
-      const vistaActiva = document.getElementById(`vista-${vista}`);
-      if (vistaActiva) vistaActiva.style.display = 'block';
-
-      // 6. Cargar datos desde el backend
-      if (vista === 'dashboard') { cargarDashboard(); } 
-      else if (vista === 'productos') { cargarProductos(); } 
-      else if (vista === 'ventas') { prepararPOS(); } 
-      else if (vista === 'combos') { cargarCombos(); } 
-      else if (vista === 'reportes') { cargarReportes(); } 
-      else if (vista === 'tipo_cambio') { cargarTipoCambioHistorial(); } 
-      else if (vista === 'usuarios') { cargarUsuarios(); } 
-      else if (vista === 'categorias') { cargarCategorias(); } 
-      else if (vista === 'inventario') { cargarInventario(); } 
-      else if (vista === 'clientes') { cargarClientes(); } 
-      else if (vista === 'proveedores') { cargarProveedores(); } 
-      else if (vista === 'compras') { cargarCompras(); } 
-      else if (vista === 'cotizaciones') { cargarProformas(); } 
-      else {
-        if(!vistaActiva) {
-            mostrarAlerta(`El módulo de ${titulos[vista]} está en construcción. Próximo a programar.`, "info");
+      // 6. Cierre del menú móvil (Independiente y protegido)
+      try {
+        if (window.innerWidth < 992) {
+          const menuLateral = document.getElementById('sidebarOffcanvas');
+          if (menuLateral && typeof bootstrap !== 'undefined') {
+             const botonCerrar = menuLateral.querySelector('.btn-close');
+             if (botonCerrar) {
+                // Pequeño retraso para que la interfaz se actualice antes de cerrar
+                setTimeout(() => botonCerrar.click(), 100);
+             }
+          }
         }
+      } catch (error) {
+         console.warn("No se pudo cerrar el menú móvil:", error);
       }
     }
 
