@@ -23,11 +23,25 @@
       flex-direction: column;
       z-index: 1000;
     }
-    .main-wrapper {
-      margin-left: 240px;
-      padding: 20px 30px;
-      min-height: 100vh;
-    }
+    /* COMPORTAMIENTO BASE (CELULARES) */
+.main-wrapper {
+  margin-left: 0; /* En celulares, el contenido ocupa toda la pantalla */
+  padding: 15px;
+}
+
+/* COMPORTAMIENTO EN PC (PANTALLAS GRANDES) */
+@media (min-width: 992px) {
+  .main-wrapper {
+    margin-left: 250px; /* Asumiendo que tu sidebar mide 250px */
+    padding: 30px;
+  }
+  
+  .sidebar {
+    width: 250px;
+    position: fixed;
+    height: 100vh;
+  }
+}
     .brand-box {
       padding: 20px;
       text-align: center;
