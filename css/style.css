@@ -21,7 +21,7 @@
       color: #fff;
       display: flex;
       flex-direction: column;
-      z-index: 1000;
+      z-index: 1050;
     }
     /* COMPORTAMIENTO BASE (CELULARES) */
 .main-wrapper {
