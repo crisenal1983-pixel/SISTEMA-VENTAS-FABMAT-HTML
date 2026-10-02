@@ -132,16 +132,6 @@
 
 // NAVEGACIÓN ENTRE SECCIONES AMPLIADA
     function cambiarVista(vista, element) {
-      // 1. CERRAR EL MENÚ MÓVIL AL INSTANTE (Si estamos en celular)
-      if (window.innerWidth < 992) {
-        const menuLateral = document.getElementById('sidebarOffcanvas');
-        if (menuLateral && typeof bootstrap !== 'undefined') {
-          const bsOffcanvas = bootstrap.Offcanvas.getInstance(menuLateral) || new bootstrap.Offcanvas(menuLateral);
-          bsOffcanvas.hide();
-        }
-      }
-
-      // 2. CAMBIAR LA VISTA PROTEGIDA CONTRA ERRORES
       try {
         document.querySelectorAll('.sidebar .nav-link').forEach(l => l.classList.remove('active'));
         if (element) {
