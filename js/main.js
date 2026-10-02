@@ -199,17 +199,19 @@
             mostrarAlerta(`El módulo de ${titulos[vista]} está en construcción. Próximo a programar.`, "info");
         }
       }
-      // Cerrar el menú lateral automáticamente solo si estamos en un celular
-  if (window.innerWidth < 992) {
-    const menuLateral = document.getElementById('sidebarOffcanvas');
-    if (menuLateral) {
-      const instanciaMenu = bootstrap.Offcanvas.getInstance(menuLateral);
-      if (instanciaMenu) {
+      // Cerrar el menú lateral automáticamente (A prueba de fallos)
+  try {
+    if (window.innerWidth < 992) {
+      const menuLateral = document.getElementById('sidebarOffcanvas');
+      if (menuLateral && typeof bootstrap !== 'undefined') {
+        const instanciaMenu = bootstrap.Offcanvas.getOrCreateInstance(menuLateral);
         instanciaMenu.hide();
       }
     }
+  } catch (error) {
+    console.warn("Error al intentar cerrar el menú móvil:", error);
   }
-    }
+  }
 
     // CONSUMO DE API (FETCH) OPTIMIZADO PARA APPS SCRIPT
     async function apiGet(action, params = null) {
