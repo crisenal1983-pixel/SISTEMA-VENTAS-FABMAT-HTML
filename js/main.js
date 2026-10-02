@@ -130,20 +130,54 @@
       `;
     }
 
-// NAVEGACIÓN ENTRE SECCIONES AMPLIADA
+// ==========================================
+    // ARQUITECTURA DE NAVEGACIÓN Y MANEJO DE ESTADO
+    // ==========================================
+    
+    // Variables globales para la cola de estado en móviles
+    let vistaPendiente = null;
+    let elementoPendiente = null;
+
+    // 1. GESTOR DE ESTADO: Intercepta el clic
+    function agendarCambioVista(vista, element) {
+      if (window.innerWidth < 992) {
+        // En móviles: Guardamos el requerimiento en memoria. 
+        // El atributo data-bs-dismiss nativo en el HTML se encargará de cerrar el menú.
+        vistaPendiente = vista;
+        elementoPendiente = element;
+      } else {
+        // En PC: Ejecución directa y síncrona, ya que el menú no estorba
+        cambiarVista(vista, element);
+      }
+    }
+
+    // 2. EVENT LISTENER NATIVO: Escucha el fin de la animación de Bootstrap
+    document.addEventListener('hidden.bs.offcanvas', function (event) {
+      if (event.target.id === 'sidebarOffcanvas' && vistaPendiente !== null) {
+        // Solo cuando la animación termina y el hilo se libera, renderizamos el DOM masivo
+        cambiarVista(vistaPendiente, elementoPendiente);
+        
+        // Limpiamos la cola
+        vistaPendiente = null;
+        elementoPendiente = null;
+      }
+    });
+
+    // 3. RENDERIZADOR PURO: Solo se dedica a manipular el DOM
     function cambiarVista(vista, element) {
       try {
+        // Limpiar clase activa
         document.querySelectorAll('.sidebar .nav-link').forEach(l => l.classList.remove('active'));
-        if (element) {
-           element.classList.add('active');
-        }
+        if (element) element.classList.add('active');
 
+        // Ocultar todas las vistas activas
         const vistas = ['dashboard', 'productos', 'ventas', 'categorias', 'inventario', 'combos', 'compras', 'clientes', 'proveedores', 'reportes', 'usuarios', 'tipo_cambio', 'cotizaciones'];
         vistas.forEach(v => {
           const div = document.getElementById(`vista-${v}`);
           if (div) div.style.display = 'none';
         });
 
+        // Configurar Títulos
         const titulos = {
           'dashboard': 'Dashboard', 'categorias': 'Categorías', 'productos': 'Productos',
           'inventario': 'Inventario', 'ventas': 'Ventas', 'combos': 'Combos de productos',
@@ -153,13 +187,13 @@
         };
 
         const tituloElemento = document.getElementById('seccion-titulo');
-        if (tituloElemento && titulos[vista]) {
-            tituloElemento.innerText = titulos[vista];
-        }
+        if (tituloElemento && titulos[vista]) tituloElemento.innerText = titulos[vista];
 
+        // Mostrar la vista requerida
         const vistaActiva = document.getElementById(`vista-${vista}`);
         if (vistaActiva) vistaActiva.style.display = 'block';
 
+        // Disparar carga de datos desde Google Apps Script (Backend)
         if (vista === 'dashboard') { cargarDashboard(); } 
         else if (vista === 'productos') { cargarProductos(); } 
         else if (vista === 'ventas') { prepararPOS(); } 
@@ -174,7 +208,7 @@
         else if (vista === 'compras') { cargarCompras(); } 
         else if (vista === 'cotizaciones') { cargarProformas(); } 
       } catch (error) {
-        console.error("Error al ejecutar cambiarVista:", error);
+        console.error("Error en renderizado del módulo:", error);
       }
     }
     // Función asíncrona para puentear el bloqueo táctil de Bootstrap en móviles

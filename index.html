@@ -61,19 +61,19 @@
         <div class="small text-muted mt-2">FabMat Bolivia © 2026</div>
       </div>
     <div class="nav flex-column flex-grow-1 mt-3" style="overflow-y: auto;">
-      <div class="nav-link active text-start w-100" style="cursor: pointer;" onclick="ejecutarMenuMovil('dashboard', this)"><i class="fa fa-chart-pie fw-bold"></i> Dashboard</div>
-      <div class="nav-link text-start w-100" style="cursor: pointer;" onclick="ejecutarMenuMovil('categorias', this)"><i class="fa fa-tags"></i> Categorías</div>
-      <div class="nav-link text-start w-100" style="cursor: pointer;" onclick="ejecutarMenuMovil('productos', this)"><i class="fa fa-boxes-stacked"></i> Productos</div>
-      <div class="nav-link text-start w-100" style="cursor: pointer;" onclick="ejecutarMenuMovil('inventario', this)"><i class="fa fa-warehouse"></i> Inventario</div>
-      <div class="nav-link text-start w-100" style="cursor: pointer;" onclick="ejecutarMenuMovil('ventas', this)"><i class="fa fa-cash-register"></i> Ventas</div>
-      <div class="nav-link text-start w-100" style="cursor: pointer;" onclick="ejecutarMenuMovil('cotizaciones', this)"><i class="fa fa-file-signature"></i> Proformas</div>
-      <div class="nav-link text-start w-100" style="cursor: pointer;" onclick="ejecutarMenuMovil('combos', this)"><i class="fa fa-gift"></i> Combos</div>
-      <div class="nav-link text-start w-100" style="cursor: pointer;" onclick="ejecutarMenuMovil('compras', this)"><i class="fa fa-shopping-cart"></i> Compras</div>
-      <div class="nav-link text-start w-100" style="cursor: pointer;" onclick="ejecutarMenuMovil('clientes', this)"><i class="fa fa-users"></i> Clientes</div>
-      <div class="nav-link text-start w-100" style="cursor: pointer;" onclick="ejecutarMenuMovil('proveedores', this)"><i class="fa fa-truck"></i> Proveedores</div>
-      <div class="nav-link text-start w-100" style="cursor: pointer;" onclick="ejecutarMenuMovil('reportes', this)"><i class="fa fa-chart-line"></i> Reportes</div>
-      <div class="nav-link text-start w-100" style="cursor: pointer;" onclick="ejecutarMenuMovil('usuarios', this)"><i class="fa fa-user-shield"></i> Usuarios</div>
-      <div class="nav-link text-start w-100" style="cursor: pointer;" onclick="ejecutarMenuMovil('tipo_cambio', this)"><i class="fa fa-exchange-alt"></i> Tipo de cambio</div>
+      <button class="nav-link active text-start border-0 bg-transparent w-100" data-bs-dismiss="offcanvas" onclick="agendarCambioVista('dashboard', this)"><i class="fa fa-chart-pie fw-bold"></i> Dashboard</button>
+      <button class="nav-link text-start border-0 bg-transparent w-100" data-bs-dismiss="offcanvas" onclick="agendarCambioVista('categorias', this)"><i class="fa fa-tags"></i> Categorías</button>
+      <button class="nav-link text-start border-0 bg-transparent w-100" data-bs-dismiss="offcanvas" onclick="agendarCambioVista('productos', this)"><i class="fa fa-boxes-stacked"></i> Productos</button>
+      <button class="nav-link text-start border-0 bg-transparent w-100" data-bs-dismiss="offcanvas" onclick="agendarCambioVista('inventario', this)"><i class="fa fa-warehouse"></i> Inventario</button>
+      <button class="nav-link text-start border-0 bg-transparent w-100" data-bs-dismiss="offcanvas" onclick="agendarCambioVista('ventas', this)"><i class="fa fa-cash-register"></i> Ventas</button>
+      <button class="nav-link text-start border-0 bg-transparent w-100" data-bs-dismiss="offcanvas" onclick="agendarCambioVista('cotizaciones', this)"><i class="fa fa-file-signature"></i> Proformas</button>
+      <button class="nav-link text-start border-0 bg-transparent w-100" data-bs-dismiss="offcanvas" onclick="agendarCambioVista('combos', this)"><i class="fa fa-gift"></i> Combos</button>
+      <button class="nav-link text-start border-0 bg-transparent w-100" data-bs-dismiss="offcanvas" onclick="agendarCambioVista('compras', this)"><i class="fa fa-shopping-cart"></i> Compras</button>
+      <button class="nav-link text-start border-0 bg-transparent w-100" data-bs-dismiss="offcanvas" onclick="agendarCambioVista('clientes', this)"><i class="fa fa-users"></i> Clientes</button>
+      <button class="nav-link text-start border-0 bg-transparent w-100" data-bs-dismiss="offcanvas" onclick="agendarCambioVista('proveedores', this)"><i class="fa fa-truck"></i> Proveedores</button>
+      <button class="nav-link text-start border-0 bg-transparent w-100" data-bs-dismiss="offcanvas" onclick="agendarCambioVista('reportes', this)"><i class="fa fa-chart-line"></i> Reportes</button>
+      <button class="nav-link text-start border-0 bg-transparent w-100" data-bs-dismiss="offcanvas" onclick="agendarCambioVista('usuarios', this)"><i class="fa fa-user-shield"></i> Usuarios</button>
+      <button class="nav-link text-start border-0 bg-transparent w-100" data-bs-dismiss="offcanvas" onclick="agendarCambioVista('tipo_cambio', this)"><i class="fa fa-exchange-alt"></i> Tipo de cambio</button>
     </div>
     </div>
   </aside>
@@ -1447,7 +1447,7 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="js/config.js?v=2"></script>
-  <script src="js/main.js?v=3"></script>
+  <script src="js/config.js?v=4"></script>
+  <script src="js/main.js?v=4"></script>
 </body>
 </html>
