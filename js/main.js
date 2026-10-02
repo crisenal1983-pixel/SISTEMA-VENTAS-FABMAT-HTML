@@ -130,13 +130,23 @@
       `;
     }
 
-    // NAVEGACIÓN ENTRE SECCIONES AMPLIADA
+// NAVEGACIÓN ENTRE SECCIONES AMPLIADA
     function cambiarVista(vista, element) {
-      // 1. Actualizar clase activa en el menú
+      // 1. Ocultar el menú en móviles (Hacerlo PRIMERO para que sea instantáneo)
+      if (window.innerWidth < 992) {
+        const menuLateral = document.getElementById('sidebarOffcanvas');
+        if (menuLateral && typeof bootstrap !== 'undefined') {
+          // Obtener la instancia de Bootstrap y ocultarla
+          const instanciaMenu = bootstrap.Offcanvas.getInstance(menuLateral) || new bootstrap.Offcanvas(menuLateral);
+          instanciaMenu.hide();
+        }
+      }
+
+      // 2. Actualizar clase activa en el menú
       document.querySelectorAll('.sidebar .nav-link').forEach(l => l.classList.remove('active'));
       element.classList.add('active');
 
-      // 2. Ocultar todas las vistas (añadiremos los divs correspondientes a medida que los programemos)
+      // 3. Ocultar todas las vistas
       const vistas = ['dashboard', 'productos', 'ventas', 'categorias', 'inventario', 'combos', 'compras', 'clientes', 'proveedores', 'reportes', 'usuarios', 'tipo_cambio', 'cotizaciones'];
       
       vistas.forEach(v => {
@@ -144,7 +154,7 @@
         if (div) div.style.display = 'none';
       });
 
-      // 3. Diccionario de Títulos de Sección
+      // 4. Diccionario de Títulos de Sección
       const titulos = {
         'dashboard': 'Dashboard',
         'categorias': 'Categorías',
@@ -163,55 +173,30 @@
 
       document.getElementById('seccion-titulo').innerText = titulos[vista];
 
-      // 4. Mostrar la vista solicitada y ejecutar lógica específica
+      // 5. Mostrar la vista solicitada
       const vistaActiva = document.getElementById(`vista-${vista}`);
       if (vistaActiva) vistaActiva.style.display = 'block';
 
-     // 5. Cargar datos desde el backend (Google Apps Script) según el módulo
-      if (vista === 'dashboard') {
-        cargarDashboard();
-      } else if (vista === 'productos') {
-        cargarProductos();
-      } else if (vista === 'ventas') {
-        prepararPOS();
-      } else if (vista === 'combos') {
-        cargarCombos();
-      } else if (vista === 'reportes') {
-        cargarReportes();
-      } else if (vista === 'tipo_cambio') {
-        cargarTipoCambioHistorial();
-      } else if (vista === 'usuarios') {
-        cargarUsuarios();
-      } else if (vista === 'categorias') {
-        cargarCategorias();
-      } else if (vista === 'inventario') {
-        cargarInventario();
-      } else if (vista === 'clientes') {  // <--- LÍNEA NUEVA
-        cargarClientes();                 // <--- LÍNEA NUEVA
-      } else if (vista === 'proveedores') {
-        cargarProveedores();
-      } else if (vista === 'compras') {
-        cargarCompras();
-      } else if (vista === 'cotizaciones') {
-        cargarProformas();
-      } else {
+      // 6. Cargar datos desde el backend
+      if (vista === 'dashboard') { cargarDashboard(); } 
+      else if (vista === 'productos') { cargarProductos(); } 
+      else if (vista === 'ventas') { prepararPOS(); } 
+      else if (vista === 'combos') { cargarCombos(); } 
+      else if (vista === 'reportes') { cargarReportes(); } 
+      else if (vista === 'tipo_cambio') { cargarTipoCambioHistorial(); } 
+      else if (vista === 'usuarios') { cargarUsuarios(); } 
+      else if (vista === 'categorias') { cargarCategorias(); } 
+      else if (vista === 'inventario') { cargarInventario(); } 
+      else if (vista === 'clientes') { cargarClientes(); } 
+      else if (vista === 'proveedores') { cargarProveedores(); } 
+      else if (vista === 'compras') { cargarCompras(); } 
+      else if (vista === 'cotizaciones') { cargarProformas(); } 
+      else {
         if(!vistaActiva) {
             mostrarAlerta(`El módulo de ${titulos[vista]} está en construcción. Próximo a programar.`, "info");
         }
       }
-      // Cerrar el menú lateral automáticamente (A prueba de fallos)
-  try {
-    if (window.innerWidth < 992) {
-      const menuLateral = document.getElementById('sidebarOffcanvas');
-      if (menuLateral && typeof bootstrap !== 'undefined') {
-        const instanciaMenu = bootstrap.Offcanvas.getOrCreateInstance(menuLateral);
-        instanciaMenu.hide();
-      }
     }
-  } catch (error) {
-    console.warn("Error al intentar cerrar el menú móvil:", error);
-  }
-  }
 
     // CONSUMO DE API (FETCH) OPTIMIZADO PARA APPS SCRIPT
     async function apiGet(action, params = null) {
