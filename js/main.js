@@ -71,7 +71,8 @@
     // Función auxiliar para arrancar la interfaz visual
     function iniciarInterfazUsuario() {
       document.getElementById('login-wrapper').style.display = 'none';
-      document.querySelector('.sidebar').style.display = 'flex';
+      
+      document.querySelector('.sidebar').style.display = ''; 
       document.querySelector('.main-wrapper').style.display = 'block';
 
       document.getElementById('user-display').innerText = state.usuarioActual.nombre;
@@ -163,21 +164,28 @@
       }
     });
 
-    // 3. RENDERIZADOR PURO: Solo se dedica a manipular el DOM
+    function ejecutarNavegacion(vista, elemento) {
+      cambiarVista(vista, elemento);
+      if (window.innerWidth < 992) {
+        setTimeout(() => {
+          const botonCerrar = document.querySelector('#sidebarOffcanvas .btn-close');
+          if (botonCerrar) { botonCerrar.click(); }
+        }, 150);
+      }
+    }
+
     function cambiarVista(vista, element) {
       try {
-        // Limpiar clase activa
         document.querySelectorAll('.sidebar .nav-link').forEach(l => l.classList.remove('active'));
-        if (element) element.classList.add('active');
+        if (element) { element.classList.add('active'); }
 
-        // Ocultar todas las vistas activas
         const vistas = ['dashboard', 'productos', 'ventas', 'categorias', 'inventario', 'combos', 'compras', 'clientes', 'proveedores', 'reportes', 'usuarios', 'tipo_cambio', 'cotizaciones'];
+        
         vistas.forEach(v => {
           const div = document.getElementById(`vista-${v}`);
           if (div) div.style.display = 'none';
         });
 
-        // Configurar Títulos
         const titulos = {
           'dashboard': 'Dashboard', 'categorias': 'Categorías', 'productos': 'Productos',
           'inventario': 'Inventario', 'ventas': 'Ventas', 'combos': 'Combos de productos',
@@ -187,13 +195,11 @@
         };
 
         const tituloElemento = document.getElementById('seccion-titulo');
-        if (tituloElemento && titulos[vista]) tituloElemento.innerText = titulos[vista];
+        if (tituloElemento && titulos[vista]) { tituloElemento.innerText = titulos[vista]; }
 
-        // Mostrar la vista requerida
         const vistaActiva = document.getElementById(`vista-${vista}`);
         if (vistaActiva) vistaActiva.style.display = 'block';
 
-        // Disparar carga de datos desde Google Apps Script (Backend)
         if (vista === 'dashboard') { cargarDashboard(); } 
         else if (vista === 'productos') { cargarProductos(); } 
         else if (vista === 'ventas') { prepararPOS(); } 
@@ -208,7 +214,7 @@
         else if (vista === 'compras') { cargarCompras(); } 
         else if (vista === 'cotizaciones') { cargarProformas(); } 
       } catch (error) {
-        console.error("Error en renderizado del módulo:", error);
+        console.error("Error al cargar la vista:", error);
       }
     }
     // Función asíncrona para puentear el bloqueo táctil de Bootstrap en móviles
