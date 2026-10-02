@@ -132,36 +132,34 @@
 
 // NAVEGACIÓN ENTRE SECCIONES AMPLIADA
     function cambiarVista(vista, element) {
+      // 1. CERRAR EL MENÚ MÓVIL AL INSTANTE (Si estamos en celular)
+      if (window.innerWidth < 992) {
+        const menuLateral = document.getElementById('sidebarOffcanvas');
+        if (menuLateral && typeof bootstrap !== 'undefined') {
+          const bsOffcanvas = bootstrap.Offcanvas.getInstance(menuLateral) || new bootstrap.Offcanvas(menuLateral);
+          bsOffcanvas.hide();
+        }
+      }
+
+      // 2. CAMBIAR LA VISTA PROTEGIDA CONTRA ERRORES
       try {
-        // 1. Actualizar clase activa en el menú
         document.querySelectorAll('.sidebar .nav-link').forEach(l => l.classList.remove('active'));
         if (element) {
            element.classList.add('active');
         }
 
-        // 2. Ocultar todas las vistas
         const vistas = ['dashboard', 'productos', 'ventas', 'categorias', 'inventario', 'combos', 'compras', 'clientes', 'proveedores', 'reportes', 'usuarios', 'tipo_cambio', 'cotizaciones'];
-        
         vistas.forEach(v => {
           const div = document.getElementById(`vista-${v}`);
           if (div) div.style.display = 'none';
         });
 
-        // 3. Títulos de Sección
         const titulos = {
-          'dashboard': 'Dashboard',
-          'categorias': 'Categorías',
-          'productos': 'Productos',
-          'inventario': 'Inventario',
-          'ventas': 'Ventas',
-          'combos': 'Combos de productos',
-          'compras': 'Compras y Abastecimiento',
-          'clientes': 'Clientes',
-          'proveedores': 'Proveedores',
-          'reportes': 'Reportes y Ganancias',
-          'usuarios': 'Usuarios y Roles',
-          'tipo_cambio': 'Tipo de Cambio USD/BOB',
-          'cotizaciones': 'Cotizaciones',
+          'dashboard': 'Dashboard', 'categorias': 'Categorías', 'productos': 'Productos',
+          'inventario': 'Inventario', 'ventas': 'Ventas', 'combos': 'Combos de productos',
+          'compras': 'Compras y Abastecimiento', 'clientes': 'Clientes', 'proveedores': 'Proveedores',
+          'reportes': 'Reportes y Ganancias', 'usuarios': 'Usuarios y Roles', 
+          'tipo_cambio': 'Tipo de Cambio USD/BOB', 'cotizaciones': 'Cotizaciones',
         };
 
         const tituloElemento = document.getElementById('seccion-titulo');
@@ -169,11 +167,9 @@
             tituloElemento.innerText = titulos[vista];
         }
 
-        // 4. Mostrar la vista solicitada
         const vistaActiva = document.getElementById(`vista-${vista}`);
         if (vistaActiva) vistaActiva.style.display = 'block';
 
-        // 5. Cargar datos desde el backend
         if (vista === 'dashboard') { cargarDashboard(); } 
         else if (vista === 'productos') { cargarProductos(); } 
         else if (vista === 'ventas') { prepararPOS(); } 
@@ -187,19 +183,8 @@
         else if (vista === 'proveedores') { cargarProveedores(); } 
         else if (vista === 'compras') { cargarCompras(); } 
         else if (vista === 'cotizaciones') { cargarProformas(); } 
-        
-        // 6. Cierre Automático Exclusivo para Celulares
-        if (window.innerWidth < 992) {
-          setTimeout(() => {
-            const btnCerrar = document.querySelector('#sidebarOffcanvas .btn-close');
-            if (btnCerrar) {
-              btnCerrar.click();
-            }
-          }, 50); // Le da tiempo al procesador del teléfono de dibujar la vista antes de cerrar el menú
-        }
-
       } catch (error) {
-        console.error("Error crítico en cambiarVista:", error);
+        console.error("Error al ejecutar cambiarVista:", error);
       }
     }
 
