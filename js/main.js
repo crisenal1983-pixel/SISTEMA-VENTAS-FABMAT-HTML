@@ -177,6 +177,24 @@
         console.error("Error al ejecutar cambiarVista:", error);
       }
     }
+    // Función asíncrona para puentear el bloqueo táctil de Bootstrap en móviles
+    function ejecutarMenuMovil(vista, elemento) {
+      // 1. Si es celular, simulamos clic en la "X" nativa del offcanvas
+      if (window.innerWidth < 992) {
+        const btnCerrar = document.querySelector('.offcanvas-header .btn-close');
+        if (btnCerrar) {
+          btnCerrar.click(); 
+        }
+        
+        // 2. Le damos tiempo al procesador móvil de hacer la animación antes de renderizar la vista
+        setTimeout(() => {
+          cambiarVista(vista, elemento);
+        }, 300);
+      } else {
+        // En computadora ejecuta normal e inmediato
+        cambiarVista(vista, elemento);
+      }
+    }
 
     // CONSUMO DE API (FETCH) OPTIMIZADO PARA APPS SCRIPT
     async function apiGet(action, params = null) {
