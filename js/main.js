@@ -199,6 +199,16 @@
             mostrarAlerta(`El módulo de ${titulos[vista]} está en construcción. Próximo a programar.`, "info");
         }
       }
+      // Cerrar el menú lateral automáticamente solo si estamos en un celular
+  if (window.innerWidth < 992) {
+    const menuLateral = document.getElementById('sidebarOffcanvas');
+    if (menuLateral) {
+      const instanciaMenu = bootstrap.Offcanvas.getInstance(menuLateral);
+      if (instanciaMenu) {
+        instanciaMenu.hide();
+      }
+    }
+  }
     }
 
     // CONSUMO DE API (FETCH) OPTIMIZADO PARA APPS SCRIPT
