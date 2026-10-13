@@ -2407,47 +2407,121 @@ async function confirmarVenta() {
       }, 1000);
     }
     // ==========================================
-    // MÓDULO: SIMULADOR DE LICITACIONES
+    // MÓDULO: SIMULADOR DE LICITACIONES (TIPO EXCEL MATRICIAL)
     // ==========================================
-    function calcularRentabilidadLicitacion() {
-      // 1. Obtener entradas del usuario
-      const cant = parseFloat(document.getElementById('lic-cant').value) || 0;
-      const costoUnitario = parseFloat(document.getElementById('lic-costo-unit').value) || 0;
-      const precioAdjudicacion = parseFloat(document.getElementById('lic-precio-adj').value) || 0;
-      const otrosGastos = parseFloat(document.getElementById('lic-otros-gastos').value) || 0;
-      
-      // 2. Procesamiento Algorítmico (Basado en hoja de Excel)
-      const totalCosto = cant * costoUnitario;
-      const totalAdjudicacion = cant * precioAdjudicacion;
-      const diferenciaBruta = totalAdjudicacion - totalCosto;
-      
-      // Cálculo de retenciones (3% Factura IVA + 3% Impuesto IT = 6% sobre el ingreso total)
-      const totalImpuestos = totalAdjudicacion * 0.06; 
-      
-      // Ganancia y Margen
-      const gananciaNeta = diferenciaBruta - totalImpuestos - otrosGastos;
-      const margen = totalAdjudicacion > 0 ? (gananciaNeta / totalAdjudicacion) * 100 : 0;
-      
-      // 3. Renderizado del DOM (Salida)
-      document.getElementById('lic-tot-costo').innerText = totalCosto.toFixed(2);
-      document.getElementById('lic-tot-adj').innerText = totalAdjudicacion.toFixed(2);
-      document.getElementById('lic-impuestos').innerText = totalImpuestos.toFixed(2);
-      
-      // Modificación dinámica de estilos (Semáforo visual)
-      const elGanancia = document.getElementById('lic-ganancia');
-      const elMargen = document.getElementById('lic-margen');
-      
-      elGanancia.innerText = `Bs ${gananciaNeta.toFixed(2)}`;
-      elMargen.innerText = `${margen.toFixed(2)}%`;
-      
-      if (gananciaNeta > 0) {
-        elGanancia.className = "fw-bold display-5 text-success mb-2";
-        elMargen.className = "badge bg-success fs-6";
-      } else if (gananciaNeta < 0) {
-        elGanancia.className = "fw-bold display-5 text-danger mb-2";
-        elMargen.className = "badge bg-danger fs-6";
-      } else {
-        elGanancia.className = "fw-bold display-5 text-dark mb-2";
-        elMargen.className = "badge bg-secondary fs-6";
+    let itemsLicitacion = [];
+
+    // Esta función la llamamos también desde tu HTML al hacer clic en el botón de la vista
+    function prepararModalLicitacion() {
+      itemsLicitacion = [];
+      document.getElementById('lic-titulo').value = '';
+      document.getElementById('lic-iva-perc').value = '3'; // IVA por defecto editable
+      agregarFilaLicitacion(); // Agrega la primera fila vacía
+    }
+
+    // Funciones adicionales de inicialización para botones de la interfaz
+    document.addEventListener("DOMContentLoaded", () => {
+      const btnNuevaLicitacion = document.querySelector('[data-bs-target="#modalLicitacion"]');
+      if(btnNuevaLicitacion) {
+        btnNuevaLicitacion.onclick = () => prepararModalLicitacion();
       }
+    });
+
+    function agregarFilaLicitacion() {
+      itemsLicitacion.push({
+        desc: '', cant: 1, 
+        pu_prof: 0, pu_costo: 0, pu_sub: 0, 
+        otros_gastos: 0
+      });
+      renderTablaLicitacion();
+    }
+
+    function actualizarItemLicitacion(index, campo, valor) {
+      if(campo === 'desc') {
+        itemsLicitacion[index][campo] = valor;
+      } else {
+        let valNum = parseFloat(valor) || 0;
+        if (valNum < 0) valNum = 0;
+        itemsLicitacion[index][campo] = valNum;
+      }
+      renderTablaLicitacion(); // Recalcula todo instantáneamente
+    }
+
+    function eliminarFilaLicitacion(index) {
+      itemsLicitacion.splice(index, 1);
+      if(itemsLicitacion.length === 0) agregarFilaLicitacion(); // Evita que la tabla quede vacía
+      else renderTablaLicitacion();
+    }
+
+    function renderTablaLicitacion() {
+      const tbody = document.getElementById('lic-items-body');
+      tbody.innerHTML = '';
+      
+      const ivaPerc = parseFloat(document.getElementById('lic-iva-perc').value) || 0;
+      const itPerc = 3; // IT fijo e inamovible (3%)
+      
+      let totProf = 0, totCosto = 0, totSub = 0, totDif = 0;
+      let totIva = 0, totIt = 0, totOg = 0, totGanancia = 0;
+
+      itemsLicitacion.forEach((item, index) => {
+        // Multiplicaciones matemáticas
+        let tProf = item.cant * item.pu_prof;
+        let tCosto = item.cant * item.pu_costo;
+        let tSub = item.cant * item.pu_sub;
+        
+        let dif = tSub - tCosto;
+        let iva = tSub * (ivaPerc / 100);
+        let it = tSub * (itPerc / 100);
+        let ganancia = dif - iva - it - item.otros_gastos;
+
+        // Sumar al acumulador global
+        totProf += tProf; totCosto += tCosto; totSub += tSub;
+        totDif += dif; totIva += iva; totIt += it; 
+        totOg += item.otros_gastos; totGanancia += ganancia;
+
+        // Pintar ganancia individual según rentabilidad
+        let colorGanancia = ganancia > 0 ? 'text-success' : (ganancia < 0 ? 'text-danger' : 'text-dark');
+
+        tbody.innerHTML += `
+          <tr>
+            <td><input type="text" class="form-control form-control-sm border-secondary" placeholder="Describa el producto..." value="${item.desc}" onchange="actualizarItemLicitacion(${index}, 'desc', this.value)"></td>
+            <td><input type="number" class="form-control form-control-sm text-center border-secondary px-1" value="${item.cant}" onchange="actualizarItemLicitacion(${index}, 'cant', this.value)"></td>
+            
+            <td class="bg-light"><input type="number" class="form-control form-control-sm text-end border-secondary px-1" value="${item.pu_prof}" onchange="actualizarItemLicitacion(${index}, 'pu_prof', this.value)"></td>
+            <td class="text-end bg-light align-middle text-muted">${tProf.toFixed(2)}</td>
+            
+            <td style="background-color: #fdf5d3;"><input type="number" class="form-control form-control-sm text-end border-warning px-1" value="${item.pu_costo}" onchange="actualizarItemLicitacion(${index}, 'pu_costo', this.value)"></td>
+            <td class="text-end align-middle text-muted" style="background-color: #fdf5d3;">${tCosto.toFixed(2)}</td>
+            
+            <td style="background-color: #e5f6ed;"><input type="number" class="form-control form-control-sm text-end border-success px-1" value="${item.pu_sub}" onchange="actualizarItemLicitacion(${index}, 'pu_sub', this.value)"></td>
+            <td class="text-end align-middle fw-bold" style="background-color: #e5f6ed;">${tSub.toFixed(2)}</td>
+            
+            <td class="text-end align-middle text-primary">${dif.toFixed(2)}</td>
+            <td class="text-end align-middle text-danger">${iva.toFixed(2)}</td>
+            <td class="text-end align-middle text-danger">${it.toFixed(2)}</td>
+            <td><input type="number" class="form-control form-control-sm text-end border-secondary px-1" value="${item.otros_gastos}" onchange="actualizarItemLicitacion(${index}, 'otros_gastos', this.value)"></td>
+            <td class="text-end align-middle fw-bold ${colorGanancia}">${ganancia.toFixed(2)}</td>
+            <td class="text-center"><button class="btn btn-sm text-danger p-0 m-0" onclick="eliminarFilaLicitacion(${index})"><i class="fa fa-trash-alt"></i></button></td>
+          </tr>
+        `;
+      });
+
+      // Renderizar los totales de toda la matriz
+      document.getElementById('lic-tot-prof').innerText = totProf.toFixed(2);
+      document.getElementById('lic-tot-costo').innerText = totCosto.toFixed(2);
+      document.getElementById('lic-tot-sub').innerText = totSub.toFixed(2);
+      document.getElementById('lic-tot-dif').innerText = totDif.toFixed(2);
+      document.getElementById('lic-tot-iva').innerText = totIva.toFixed(2);
+      document.getElementById('lic-tot-it').innerText = totIt.toFixed(2);
+      document.getElementById('lic-tot-og').innerText = totOg.toFixed(2);
+      
+      const elGanancia = document.getElementById('lic-tot-ganancia');
+      elGanancia.innerText = totGanancia.toFixed(2);
+      elGanancia.className = `fs-6 fw-bold ${totGanancia > 0 ? 'text-success' : (totGanancia < 0 ? 'text-danger' : 'text-primary')}`;
+
+      // Cálculo del % de Rentabilidad Global de la licitación
+      const margen = totSub > 0 ? (totGanancia / totSub) * 100 : 0;
+      const elEstado = document.getElementById('lic-estado-general');
+      elEstado.innerText = `Rentabilidad General: ${margen.toFixed(2)}%`;
+      elEstado.className = `fw-bold fs-5 ${totGanancia > 0 ? 'text-success' : (totGanancia < 0 ? 'text-danger' : 'text-secondary')}`;
     }
