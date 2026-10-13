@@ -2412,22 +2412,20 @@ async function confirmarVenta() {
     let itemsLicitacion = [];
 
     // Esta función la llamamos también desde tu HTML al hacer clic en el botón de la vista
-    function prepararModalLicitacion() {
+    window.prepararModalLicitacion = function() {
       itemsLicitacion = [];
-      document.getElementById('lic-titulo').value = '';
-      document.getElementById('lic-iva-perc').value = '3'; // IVA por defecto editable
+      const tit = document.getElementById('lic-titulo');
+      if (tit) tit.value = '';
+      const ivaP = document.getElementById('lic-iva-perc');
+      if (ivaP) ivaP.value = '3'; // IVA por defecto editable
+      
+      const tbody = document.getElementById('lic-items-body');
+      if (tbody) tbody.innerHTML = ''; // Limpiar tabla
+      
       agregarFilaLicitacion(); // Agrega la primera fila vacía
     }
 
-    // Funciones adicionales de inicialización para botones de la interfaz
-    document.addEventListener("DOMContentLoaded", () => {
-      const btnNuevaLicitacion = document.querySelector('[data-bs-target="#modalLicitacion"]');
-      if(btnNuevaLicitacion) {
-        btnNuevaLicitacion.onclick = () => prepararModalLicitacion();
-      }
-    });
-
-    function agregarFilaLicitacion() {
+    window.agregarFilaLicitacion = function() {
       itemsLicitacion.push({
         desc: '', cant: 1, 
         pu_prof: 0, pu_costo: 0, pu_sub: 0, 
@@ -2436,7 +2434,7 @@ async function confirmarVenta() {
       renderTablaLicitacion();
     }
 
-    function actualizarItemLicitacion(index, campo, valor) {
+    window.actualizarItemLicitacion = function(index, campo, valor) {
       if(campo === 'desc') {
         itemsLicitacion[index][campo] = valor;
       } else {
@@ -2447,14 +2445,15 @@ async function confirmarVenta() {
       renderTablaLicitacion(); // Recalcula todo instantáneamente
     }
 
-    function eliminarFilaLicitacion(index) {
+    window.eliminarFilaLicitacion = function(index) {
       itemsLicitacion.splice(index, 1);
       if(itemsLicitacion.length === 0) agregarFilaLicitacion(); // Evita que la tabla quede vacía
       else renderTablaLicitacion();
     }
 
-    function renderTablaLicitacion() {
+    window.renderTablaLicitacion = function() {
       const tbody = document.getElementById('lic-items-body');
+      if(!tbody) return;
       tbody.innerHTML = '';
       
       const ivaPerc = parseFloat(document.getElementById('lic-iva-perc').value) || 0;

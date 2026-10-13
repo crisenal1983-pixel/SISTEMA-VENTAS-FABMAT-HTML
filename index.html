@@ -109,7 +109,8 @@
             <h4 class="fw-bold mb-0 text-dark"><i class="fa fa-gavel text-secondary"></i> Evaluador de Licitaciones</h4>
             <p class="text-muted small mb-0">Simulador de subastas y análisis de rentabilidad</p>
           </div>
-          <button class="btn btn-fabmat" data-bs-toggle="modal" data-bs-target="#modalLicitacion" onclick="document.getElementById('form-licitacion').reset(); calcularRentabilidadLicitacion();">
+          <!-- AQUI ESTABA EL ERROR: AHORA LLAMA A LA FUNCION CORRECTA prepararModalLicitacion() -->
+          <button class="btn btn-fabmat" data-bs-toggle="modal" data-bs-target="#modalLicitacion" onclick="prepararModalLicitacion();">
             <i class="fa fa-calculator"></i> Nueva Simulación
           </button>
         </div>
@@ -211,7 +212,7 @@
       </div>
     </div>
   </div>
- 
+
       <!-- VISTA DASHBOARD -->
       <div id="vista-dashboard">
         <!-- Tarjetas Superiores -->
@@ -1560,7 +1561,7 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="js/config.js?v=9"></script>
-  <script src="js/main.js?v=9"></script>
+  <script src="js/config.js?v=99"></script>
+  <script src="js/main.js?v=99"></script>
 </body>
 </html>
