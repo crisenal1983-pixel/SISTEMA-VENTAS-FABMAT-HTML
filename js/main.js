@@ -179,7 +179,7 @@
         document.querySelectorAll('.sidebar .nav-link').forEach(l => l.classList.remove('active'));
         if (element) { element.classList.add('active'); }
 
-        const vistas = ['dashboard', 'productos', 'ventas', 'categorias', 'inventario', 'combos', 'compras', 'clientes', 'proveedores', 'reportes', 'usuarios', 'tipo_cambio', 'cotizaciones'];
+        const vistas = ['dashboard', 'productos', 'ventas', 'categorias', 'inventario', 'combos', 'compras', 'clientes', 'proveedores', 'reportes', 'usuarios', 'tipo_cambio', 'cotizaciones', 'licitaciones'];
         
         vistas.forEach(v => {
           const div = document.getElementById(`vista-${v}`);
@@ -212,7 +212,8 @@
         else if (vista === 'clientes') { cargarClientes(); } 
         else if (vista === 'proveedores') { cargarProveedores(); } 
         else if (vista === 'compras') { cargarCompras(); } 
-        else if (vista === 'cotizaciones') { cargarProformas(); } 
+        else if (vista === 'cotizaciones') { cargarProformas(); }
+        else if (vista === 'licitaciones') { /* Aquí puedes poner una función para cargar licitaciones guardadas luego */ } 
       } catch (error) {
         console.error("Error al cargar la vista:", error);
       }
@@ -2404,4 +2405,49 @@ async function confirmarVenta() {
         iframe.contentWindow.focus();
         iframe.contentWindow.print(); 
       }, 1000);
+    }
+    // ==========================================
+    // MÓDULO: SIMULADOR DE LICITACIONES
+    // ==========================================
+    function calcularRentabilidadLicitacion() {
+      // 1. Obtener entradas del usuario
+      const cant = parseFloat(document.getElementById('lic-cant').value) || 0;
+      const costoUnitario = parseFloat(document.getElementById('lic-costo-unit').value) || 0;
+      const precioAdjudicacion = parseFloat(document.getElementById('lic-precio-adj').value) || 0;
+      const otrosGastos = parseFloat(document.getElementById('lic-otros-gastos').value) || 0;
+      
+      // 2. Procesamiento Algorítmico (Basado en hoja de Excel)
+      const totalCosto = cant * costoUnitario;
+      const totalAdjudicacion = cant * precioAdjudicacion;
+      const diferenciaBruta = totalAdjudicacion - totalCosto;
+      
+      // Cálculo de retenciones (3% Factura IVA + 3% Impuesto IT = 6% sobre el ingreso total)
+      const totalImpuestos = totalAdjudicacion * 0.06; 
+      
+      // Ganancia y Margen
+      const gananciaNeta = diferenciaBruta - totalImpuestos - otrosGastos;
+      const margen = totalAdjudicacion > 0 ? (gananciaNeta / totalAdjudicacion) * 100 : 0;
+      
+      // 3. Renderizado del DOM (Salida)
+      document.getElementById('lic-tot-costo').innerText = totalCosto.toFixed(2);
+      document.getElementById('lic-tot-adj').innerText = totalAdjudicacion.toFixed(2);
+      document.getElementById('lic-impuestos').innerText = totalImpuestos.toFixed(2);
+      
+      // Modificación dinámica de estilos (Semáforo visual)
+      const elGanancia = document.getElementById('lic-ganancia');
+      const elMargen = document.getElementById('lic-margen');
+      
+      elGanancia.innerText = `Bs ${gananciaNeta.toFixed(2)}`;
+      elMargen.innerText = `${margen.toFixed(2)}%`;
+      
+      if (gananciaNeta > 0) {
+        elGanancia.className = "fw-bold display-5 text-success mb-2";
+        elMargen.className = "badge bg-success fs-6";
+      } else if (gananciaNeta < 0) {
+        elGanancia.className = "fw-bold display-5 text-danger mb-2";
+        elMargen.className = "badge bg-danger fs-6";
+      } else {
+        elGanancia.className = "fw-bold display-5 text-dark mb-2";
+        elMargen.className = "badge bg-secondary fs-6";
+      }
     }

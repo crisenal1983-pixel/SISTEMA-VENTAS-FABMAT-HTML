@@ -67,6 +67,7 @@
       <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('inventario', this)"><i class="fa fa-warehouse"></i> Inventario</button>
       <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('ventas', this)"><i class="fa fa-cash-register"></i> Ventas</button>
       <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('cotizaciones', this)"><i class="fa fa-file-signature"></i> Proformas</button>
+      <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('licitaciones', this)"><i class="fa fa-gavel"></i> Licitaciones</button>
       <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('combos', this)"><i class="fa fa-gift"></i> Combos</button>
       <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('compras', this)"><i class="fa fa-shopping-cart"></i> Compras</button>
       <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('clientes', this)"><i class="fa fa-users"></i> Clientes</button>
@@ -100,6 +101,122 @@
     <div id="alert-box"></div>
 
     <section id="contenedor-vistas">
+
+      <!-- VISTA LICITACIONES / SUBASTAS -->
+      <div id="vista-licitaciones" style="display: none;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h4 class="fw-bold mb-0 text-dark"><i class="fa fa-gavel text-secondary"></i> Evaluador de Licitaciones</h4>
+            <p class="text-muted small mb-0">Simulador de subastas y análisis de rentabilidad</p>
+          </div>
+          <button class="btn btn-fabmat" data-bs-toggle="modal" data-bs-target="#modalLicitacion" onclick="document.getElementById('form-licitacion').reset(); calcularRentabilidadLicitacion();">
+            <i class="fa fa-calculator"></i> Nueva Simulación
+          </button>
+        </div>
+        
+        <div class="card border-0 shadow-sm">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Fecha</th>
+                  <th>Producto Licitado</th>
+                  <th class="text-center">Cant.</th>
+                  <th class="text-end">Costo Total</th>
+                  <th class="text-end">Adjudicado</th>
+                  <th class="text-end">Ganancia Neta</th>
+                  <th class="text-center">Estado</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-licitaciones-body">
+                <tr><td colspan="7" class="text-center text-muted py-4">Aún no hay evaluaciones guardadas</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+  <!-- MODAL: SIMULADOR DE RENTABILIDAD -->
+  <div class="modal fade" id="modalLicitacion" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-dark text-white">
+          <h5 class="modal-title fw-bold"><i class="fa fa-balance-scale me-2"></i> Simulador de Subasta</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body bg-light">
+          <form id="form-licitacion">
+            <div class="row g-3 mb-4">
+              <div class="col-md-9">
+                <label class="form-label small fw-bold">Descripción del Bien o Servicio</label>
+                <input type="text" class="form-control" id="lic-desc" placeholder="Ej: TONER HP LASERJET CE285A">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label small fw-bold">Cantidad</label>
+                <input type="number" class="form-control text-center" id="lic-cant" value="1" min="1" oninput="calcularRentabilidadLicitacion()">
+              </div>
+            </div>
+
+            <div class="row g-3">
+              <!-- Bloque Inversión -->
+              <div class="col-md-4">
+                <div class="card p-3 border-0 shadow-sm h-100 border-start border-4 border-secondary">
+                  <h6 class="fw-bold text-muted border-bottom pb-2">1. INVERSIÓN (Costo)</h6>
+                  <label class="small text-muted mb-1">Precio Compra Unitario (Bs)</label>
+                  <input type="number" step="0.1" class="form-control mb-3" id="lic-costo-unit" value="0" oninput="calcularRentabilidadLicitacion()">
+                  <div class="mt-auto pt-2 border-top">
+                    <span class="small text-muted d-block">Total Inversión:</span>
+                    <h5 class="fw-bold text-dark mb-0">Bs <span id="lic-tot-costo">0.00</span></h5>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Bloque Adjudicación -->
+              <div class="col-md-4">
+                <div class="card p-3 border-0 shadow-sm h-100 border-start border-4 border-primary">
+                  <h6 class="fw-bold text-primary border-bottom pb-2">2. SUBASTA (Ingreso)</h6>
+                  <label class="small text-muted mb-1">Precio Presentado Unit. (Bs)</label>
+                  <input type="number" step="0.1" class="form-control mb-3" id="lic-precio-adj" value="0" oninput="calcularRentabilidadLicitacion()">
+                  <div class="mt-auto pt-2 border-top">
+                    <span class="small text-muted d-block">Total Adjudicado:</span>
+                    <h5 class="fw-bold text-primary mb-0">Bs <span id="lic-tot-adj">0.00</span></h5>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Bloque Gastos -->
+              <div class="col-md-4">
+                <div class="card p-3 border-0 shadow-sm h-100 border-start border-4 border-danger">
+                  <h6 class="fw-bold text-danger border-bottom pb-2">3. DEDUCCIONES</h6>
+                  <label class="small text-muted mb-1">Otros Gastos (Transporte, etc)</label>
+                  <input type="number" step="0.1" class="form-control mb-2" id="lic-otros-gastos" value="0" oninput="calcularRentabilidadLicitacion()">
+                  <div class="mt-auto pt-2 border-top">
+                    <span class="small text-danger d-block">Impuestos (3% IVA + 3% IT):</span>
+                    <h5 class="fw-bold text-danger mb-0">- Bs <span id="lic-impuestos">0.00</span></h5>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Panel de Resultados (KPIs) -->
+            <div class="card mt-4 border-0 bg-white shadow-sm p-4 text-center rounded-3">
+              <span class="text-muted fw-bold mb-1">RESULTADO FINAL (GANANCIA NETA)</span>
+              <div id="lic-ganancia" class="fw-bold display-5 text-dark mb-2">Bs 0.00</div>
+              <div>
+                <span class="text-muted small me-2">Margen de Rentabilidad:</span>
+                <span id="lic-margen" class="badge bg-secondary fs-6">0.00%</span>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cerrar Simulador</button>
+          <button type="button" class="btn btn-fabmat"><i class="fa fa-save"></i> Guardar Evaluación</button>
+        </div>
+      </div>
+    </div>
+  </div>
+ 
       <!-- VISTA DASHBOARD -->
       <div id="vista-dashboard">
         <!-- Tarjetas Superiores -->
@@ -222,7 +339,7 @@
           </div>
         </div>
       </div>
-
+    
     <!-- VISTA VENTAS -->
       <div id="vista-ventas" style="display: none;">
         <!-- Pestañas de Navegación Ventas -->
@@ -1448,7 +1565,7 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="js/config.js?v=5"></script>
-  <script src="js/main.js?v=5"></script>
+  <script src="js/config.js?v=7"></script>
+  <script src="js/main.js?v=7"></script>
 </body>
 </html>
