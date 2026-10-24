@@ -296,7 +296,37 @@
           document.getElementById('prod-venta-usd').value = (bob / state.tasaCambio).toFixed(2);
         }
       }
-    } 
+      calcularGananciaProducto();
+    }
+
+    function calcularGananciaProducto() {
+      const compraUsd = parseFloat(document.getElementById('prod-compra-usd')?.value) || 0;
+      const compraBob = parseFloat(document.getElementById('prod-compra-bob')?.value) || 0;
+      const ventaUsd = parseFloat(document.getElementById('prod-venta-usd')?.value) || 0;
+      const ventaBob = parseFloat(document.getElementById('prod-venta-bob')?.value) || 0;
+
+      const gananciaUsd = ventaUsd - compraUsd;
+      const gananciaBob = ventaBob - compraBob;
+      const margen = ventaBob > 0 ? (gananciaBob / ventaBob) * 100 : 0;
+
+      const elGanUsd = document.getElementById('prod-ganancia-usd');
+      const elGanBob = document.getElementById('prod-ganancia-bob');
+      const elMargen = document.getElementById('prod-ganancia-margen');
+
+      if (elGanUsd && elGanBob) {
+        elGanUsd.value = gananciaUsd.toFixed(2);
+        elGanBob.value = gananciaBob.toFixed(2);
+
+        const colorTexto = gananciaBob > 0 ? 'text-success' : (gananciaBob < 0 ? 'text-danger' : 'text-dark');
+        elGanUsd.className = `form-control bg-light fw-bold ${colorTexto}`;
+        elGanBob.className = `form-control bg-light fw-bold ${colorTexto}`;
+      }
+
+      if (elMargen) {
+        elMargen.innerText = `Margen: ${margen.toFixed(2)}%`;
+        elMargen.className = `badge ${gananciaBob > 0 ? 'bg-success' : (gananciaBob < 0 ? 'bg-danger' : 'bg-secondary')}`;
+      }
+    }
 
     let chartVentas7Dias = null;
     
@@ -518,6 +548,7 @@
       let nextId = (state.productos ? state.productos.length : 0) + 1;
       document.getElementById('prod-sku').value = `PROD-${String(nextId).padStart(4, '0')}`;
       
+      calcularGananciaProducto();
       new bootstrap.Modal(document.getElementById('modalProducto')).show();
     }
 
@@ -552,6 +583,7 @@
         document.getElementById('prod-imagen-base64').value = prod.imagen;
       }
       
+      calcularGananciaProducto();
       document.querySelector('#modalProducto .modal-title').innerText = 'Editar producto';
       new bootstrap.Modal(document.getElementById('modalProducto')).show();
     }
