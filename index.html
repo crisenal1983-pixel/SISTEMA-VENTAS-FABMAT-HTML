@@ -6,7 +6,7 @@
   <title>Sistema de Gestión | Distribuidora FabMat</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="css/style.css?v=10">
+  <link rel="stylesheet" href="css/style.css?v=11">
 </head>
 <body>
   <!-- PANTALLA DE LOGIN -->
@@ -43,7 +43,7 @@
     </div>
   </div>
 
- <!-- BOTÓN HAMBURGUESA SOLO PARA MÓVILES -->
+  <!-- BOTÓN HAMBURGUESA SOLO PARA MÓVILES -->
   <button class="btn btn-fabmat d-lg-none m-3 position-fixed top-0 start-0 z-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas">
     <i class="fa fa-bars"></i>
   </button>
@@ -55,27 +55,28 @@
       <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebarOffcanvas" aria-label="Close"></button>
     </div>
     
-    <div class="offcanvas-body flex-column h-100">
+    <div class="offcanvas-body d-flex flex-column h-100 p-0">
       <div class="brand-box d-none d-lg-block">
         <img src="logo.png" alt="FAB MAT" style="max-width: 140px; border-radius: 8px;">
         <div class="small text-muted mt-2">FabMat Bolivia © 2026</div>
       </div>
-    <div class="nav flex-column flex-nowrap flex-grow-1 mt-3" style="overflow-y: auto; overflow-x: hidden; max-height: calc(100vh - 150px); padding-bottom: 80px;"></div>
-      <button type="button" class="nav-link active text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('dashboard', this)"><i class="fa fa-chart-pie fw-bold"></i> Dashboard</button>
-      <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('categorias', this)"><i class="fa fa-tags"></i> Categorías</button>
-      <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('productos', this)"><i class="fa fa-boxes-stacked"></i> Productos</button>
-      <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('inventario', this)"><i class="fa fa-warehouse"></i> Inventario</button>
-      <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('ventas', this)"><i class="fa fa-cash-register"></i> Ventas</button>
-      <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('cotizaciones', this)"><i class="fa fa-file-signature"></i> Proformas</button>
-      <button type="button" class="nav-link text-start border-0 bg-transparent w-100" data-bs-dismiss="offcanvas" onclick="ejecutarNavegacion('licitaciones', this); prepararModalLicitacion();"><i class="fa fa-gavel"></i> Licitaciones</button>
-      <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('combos', this)"><i class="fa fa-gift"></i> Combos</button>
-      <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('compras', this)"><i class="fa fa-shopping-cart"></i> Compras</button>
-      <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('clientes', this)"><i class="fa fa-users"></i> Clientes</button>
-      <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('proveedores', this)"><i class="fa fa-truck"></i> Proveedores</button>
-      <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('reportes', this)"><i class="fa fa-chart-line"></i> Reportes</button>
-      <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('usuarios', this)"><i class="fa fa-user-shield"></i> Usuarios</button>
-      <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('tipo_cambio', this)"><i class="fa fa-exchange-alt"></i> Tipo de cambio</button>
-    </div>
+      <!-- CONTENEDOR DE NAVEGACIÓN CORREGIDO CON FLEX-NOWRAP Y SCROLL VERTICAL -->
+      <div class="nav flex-column flex-nowrap flex-grow-1 mt-3" style="overflow-y: auto; overflow-x: hidden; max-height: calc(100vh - 140px); padding-bottom: 100px;">
+        <button type="button" class="nav-link active text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('dashboard', this)"><i class="fa fa-chart-pie fw-bold"></i> Dashboard</button>
+        <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('categorias', this)"><i class="fa fa-tags"></i> Categorías</button>
+        <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('productos', this)"><i class="fa fa-boxes-stacked"></i> Productos</button>
+        <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('inventario', this)"><i class="fa fa-warehouse"></i> Inventario</button>
+        <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('ventas', this)"><i class="fa fa-cash-register"></i> Ventas</button>
+        <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('cotizaciones', this)"><i class="fa fa-file-signature"></i> Proformas</button>
+        <button type="button" class="nav-link text-start border-0 bg-transparent w-100" data-bs-dismiss="offcanvas" onclick="ejecutarNavegacion('licitaciones', this); prepararModalLicitacion();"><i class="fa fa-gavel"></i> Licitaciones</button>
+        <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('combos', this)"><i class="fa fa-gift"></i> Combos</button>
+        <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('compras', this)"><i class="fa fa-shopping-cart"></i> Compras</button>
+        <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('clientes', this)"><i class="fa fa-users"></i> Clientes</button>
+        <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('proveedores', this)"><i class="fa fa-truck"></i> Proveedores</button>
+        <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('reportes', this)"><i class="fa fa-chart-line"></i> Reportes</button>
+        <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('usuarios', this)"><i class="fa fa-user-shield"></i> Usuarios</button>
+        <button type="button" id="nav-btn-tc" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('tipo_cambio', this)"><i class="fa fa-exchange-alt"></i> Tipo de cambio</button>
+      </div>
     </div>
   </aside>
 
@@ -136,81 +137,81 @@
         </div>
       </div>
 
-  <!-- MODAL: SIMULADOR DE RENTABILIDAD (TIPO EXCEL) -->
-  <div class="modal fade" id="modalLicitacionNuevo" tabindex="-1">
-    <div class="modal-dialog modal-xl">
-      <div class="modal-content">
-        <div class="modal-header bg-dark text-white">
-          <h5 class="modal-title fw-bold"><i class="fa fa-table me-2"></i> Matriz de Evaluación de Subastas</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body bg-light">
-          <div class="row g-3 mb-3">
-            <div class="col-md-6">
-              <label class="form-label small fw-bold">Título de la Licitación</label>
-              <input type="text" class="form-control form-control-sm" id="lic-titulo" placeholder="Ej: Adquisición de Toners CNS...">
+      <!-- MODAL: SIMULADOR DE RENTABILIDAD (TIPO EXCEL) -->
+      <div class="modal fade" id="modalLicitacionNuevo" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+          <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+              <h5 class="modal-title fw-bold"><i class="fa fa-table me-2"></i> Matriz de Evaluación de Subastas</h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="col-md-3">
-              <label class="form-label small fw-bold text-danger">Porcentaje IVA (%) *</label>
-              <input type="number" step="0.1" class="form-control form-control-sm fw-bold border-danger" id="lic-iva-perc" value="3" oninput="renderTablaLicitacion()">
+            <div class="modal-body bg-light">
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label class="form-label small fw-bold">Título de la Licitación</label>
+                  <input type="text" class="form-control form-control-sm" id="lic-titulo" placeholder="Ej: Adquisición de Toners CNS...">
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label small fw-bold text-danger">Porcentaje IVA (%) *</label>
+                  <input type="number" step="0.1" class="form-control form-control-sm fw-bold border-danger" id="lic-iva-perc" value="3" oninput="renderTablaLicitacion()">
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label small fw-bold text-muted">Porcentaje IT (%) *</label>
+                  <input type="number" class="form-control form-control-sm bg-light" value="3" readonly disabled>
+                </div>
+              </div>
+              
+              <div class="table-responsive bg-white border shadow-sm" style="max-height: 450px; overflow-y: auto;">
+                <table class="table table-bordered table-hover align-middle mb-0 text-sm" style="font-size: 11px; min-width: 1300px;">
+                  <thead class="sticky-top text-center text-white" style="z-index: 2;">
+                    <tr>
+                      <th style="width: 15%; background:#343a40;">Descripción del Bien</th>
+                      <th style="width: 4%; background:#343a40;">Cant.</th>
+                      <th style="width: 7%; background:#6c757d;">P.U. Proforma</th>
+                      <th style="width: 8%; background:#6c757d;">Tot. Proforma</th>
+                      <th style="width: 7%; background:#d39e00;">P.U. Costo</th>
+                      <th style="width: 8%; background:#d39e00;">Tot. Costo</th>
+                      <th style="width: 7%; background:#198754;">P.U. Subasta</th>
+                      <th style="width: 8%; background:#198754;">Tot. Subasta</th>
+                      <th style="width: 7%; background:#343a40;">Diferencia</th>
+                      <th style="width: 6%; background:#343a40;">IVA</th>
+                      <th style="width: 6%; background:#343a40;">IT (3%)</th>
+                      <th style="width: 7%; background:#343a40;">O. Gastos</th>
+                      <th style="width: 7%; background:#343a40;">Ganancia</th>
+                      <th style="width: 3%; background:#343a40;"></th>
+                    </tr>
+                  </thead>
+                  <tbody id="lic-items-body"></tbody>
+                  <tfoot class="table-light fw-bold sticky-bottom" style="z-index: 2;">
+                    <tr class="text-end">
+                      <td colspan="3">TOTALES (Bs)</td>
+                      <td id="lic-tot-prof" class="text-dark bg-light">0.00</td>
+                      <td class="bg-light"></td>
+                      <td id="lic-tot-costo" class="text-warning text-darken" style="background-color: #fdf5d3;">0.00</td>
+                      <td class="bg-light"></td>
+                      <td id="lic-tot-sub" class="text-success" style="background-color: #e5f6ed;">0.00</td>
+                      <td id="lic-tot-dif" class="text-primary bg-light">0.00</td>
+                      <td id="lic-tot-iva" class="text-danger bg-light">0.00</td>
+                      <td id="lic-tot-it" class="text-danger bg-light">0.00</td>
+                      <td id="lic-tot-og" class="bg-light">0.00</td>
+                      <td id="lic-tot-ganancia" class="fs-6 text-dark bg-light">0.00</td>
+                      <td class="bg-light"></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+              <button class="btn btn-sm btn-secondary mt-3" onclick="agregarFilaLicitacion()"><i class="fa fa-plus"></i> Añadir Nueva Fila</button>
             </div>
-            <div class="col-md-3">
-              <label class="form-label small fw-bold text-muted">Porcentaje IT (%) *</label>
-              <input type="number" class="form-control form-control-sm bg-light" value="3" readonly disabled>
+            <div class="modal-footer d-flex justify-content-between align-items-center">
+              <div id="lic-estado-general" class="fw-bold fs-5 text-muted">Margen: 0.00%</div>
+              <div>
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-fabmat"><i class="fa fa-save"></i> Guardar Evaluación</button>
+              </div>
             </div>
           </div>
-          
-          <div class="table-responsive bg-white border shadow-sm" style="max-height: 450px; overflow-y: auto;">
-            <table class="table table-bordered table-hover align-middle mb-0 text-sm" style="font-size: 11px; min-width: 1300px;">
-              <thead class="sticky-top text-center text-white" style="z-index: 2;">
-                <tr>
-                  <th style="width: 15%; background:#343a40;">Descripción del Bien</th>
-                  <th style="width: 4%; background:#343a40;">Cant.</th>
-                  <th style="width: 7%; background:#6c757d;">P.U. Proforma</th>
-                  <th style="width: 8%; background:#6c757d;">Tot. Proforma</th>
-                  <th style="width: 7%; background:#d39e00;">P.U. Costo</th>
-                  <th style="width: 8%; background:#d39e00;">Tot. Costo</th>
-                  <th style="width: 7%; background:#198754;">P.U. Subasta</th>
-                  <th style="width: 8%; background:#198754;">Tot. Subasta</th>
-                  <th style="width: 7%; background:#343a40;">Diferencia</th>
-                  <th style="width: 6%; background:#343a40;">IVA</th>
-                  <th style="width: 6%; background:#343a40;">IT (3%)</th>
-                  <th style="width: 7%; background:#343a40;">O. Gastos</th>
-                  <th style="width: 7%; background:#343a40;">Ganancia</th>
-                  <th style="width: 3%; background:#343a40;"></th>
-                </tr>
-              </thead>
-              <tbody id="lic-items-body"></tbody>
-              <tfoot class="table-light fw-bold sticky-bottom" style="z-index: 2;">
-                <tr class="text-end">
-                  <td colspan="3">TOTALES (Bs)</td>
-                  <td id="lic-tot-prof" class="text-dark bg-light">0.00</td>
-                  <td class="bg-light"></td>
-                  <td id="lic-tot-costo" class="text-warning text-darken" style="background-color: #fdf5d3;">0.00</td>
-                  <td class="bg-light"></td>
-                  <td id="lic-tot-sub" class="text-success" style="background-color: #e5f6ed;">0.00</td>
-                  <td id="lic-tot-dif" class="text-primary bg-light">0.00</td>
-                  <td id="lic-tot-iva" class="text-danger bg-light">0.00</td>
-                  <td id="lic-tot-it" class="text-danger bg-light">0.00</td>
-                  <td id="lic-tot-og" class="bg-light">0.00</td>
-                  <td id="lic-tot-ganancia" class="fs-6 text-dark bg-light">0.00</td>
-                  <td class="bg-light"></td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-          <button class="btn btn-sm btn-secondary mt-3" onclick="agregarFilaLicitacion()"><i class="fa fa-plus"></i> Añadir Nueva Fila</button>
-        </div>
-        <div class="modal-footer d-flex justify-content-between align-items-center">
-            <div id="lic-estado-general" class="fw-bold fs-5 text-muted">Margen: 0.00%</div>
-            <div>
-              <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cerrar</button>
-              <button type="button" class="btn btn-fabmat"><i class="fa fa-save"></i> Guardar Evaluación</button>
-            </div>
         </div>
       </div>
-    </div>
-  </div>
  
       <!-- VISTA DASHBOARD -->
       <div id="vista-dashboard">
@@ -335,7 +336,7 @@
         </div>
       </div>
     
-    <!-- VISTA VENTAS -->
+      <!-- VISTA VENTAS -->
       <div id="vista-ventas" style="display: none;">
         <!-- Pestañas de Navegación Ventas -->
         <ul class="nav pos-nav-tabs mb-4 border-bottom" role="tablist">
@@ -351,101 +352,101 @@
           <!-- TAB: PUNTO DE VENTA -->
           <div class="tab-pane fade show active" id="tab-pos">
             <div class="row g-4">
-          <!-- Columna Izquierda: Catálogo Pestañas -->
-          <div class="col-md-5">
-            <div class="card border-0 shadow-sm p-3 h-100">
-              <ul class="nav pos-nav-tabs mb-3" role="tablist">
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-prods" type="button"><i class="fa fa-box me-1"></i> Productos</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-combos" type="button"><i class="fa fa-gift me-1"></i> Combos</button>
-                </li>
-              </ul>
-              
-              <div class="input-group mb-3">
-                <span class="input-group-text bg-white"><i class="fa fa-search text-muted"></i></span>
-                <input type="text" class="form-control border-start-0 ps-0" id="pos-buscar" placeholder="Buscar producto o combo..." oninput="filtrarCatalogoPOS()">
+              <!-- Columna Izquierda: Catálogo Pestañas -->
+              <div class="col-md-5">
+                <div class="card border-0 shadow-sm p-3 h-100">
+                  <ul class="nav pos-nav-tabs mb-3" role="tablist">
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-prods" type="button"><i class="fa fa-box me-1"></i> Productos</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-combos" type="button"><i class="fa fa-gift me-1"></i> Combos</button>
+                    </li>
+                  </ul>
+                  
+                  <div class="input-group mb-3">
+                    <span class="input-group-text bg-white"><i class="fa fa-search text-muted"></i></span>
+                    <input type="text" class="form-control border-start-0 ps-0" id="pos-buscar" placeholder="Buscar producto o combo..." oninput="filtrarCatalogoPOS()">
+                  </div>
+
+                  <div class="tab-content" style="max-height: 500px; overflow-y: auto;">
+                    <!-- Lista de Productos -->
+                    <div class="tab-pane fade show active" id="tab-prods">
+                      <div class="d-flex justify-content-between text-muted small fw-bold mb-2 pb-1 border-bottom">
+                        <span>Producto</span><span>Precio</span><span>Stock</span><span></span>
+                      </div>
+                      <div id="pos-lista-productos"></div>
+                    </div>
+                    <!-- Lista de Combos -->
+                    <div class="tab-pane fade" id="tab-combos">
+                      <div class="d-flex justify-content-between text-muted small fw-bold mb-2 pb-1 border-bottom">
+                        <span>Combo</span><span>Precio</span><span></span>
+                      </div>
+                      <div id="pos-lista-combos"></div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div class="tab-content" style="max-height: 500px; overflow-y: auto;">
-                <!-- Lista de Productos -->
-                <div class="tab-pane fade show active" id="tab-prods">
-                  <div class="d-flex justify-content-between text-muted small fw-bold mb-2 pb-1 border-bottom">
-                    <span>Producto</span><span>Precio</span><span>Stock</span><span></span>
+              <!-- Columna Derecha: Facturación -->
+              <div class="col-md-7">
+                <div class="card border-0 shadow-sm p-3">
+                  <!-- Encabezado Cliente y Moneda -->
+                  <div class="row g-3 mb-3 border-bottom pb-3">
+                    <div class="col-md-8">
+                      <label class="form-label small text-muted mb-1">Cliente</label>
+                      <select class="form-select form-select-sm" id="pos-cliente"></select>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label small text-muted mb-1">Moneda</label>
+                      <div class="d-flex gap-3 mt-1">
+                        <div class="form-check"><input class="form-check-input" type="radio" name="pos-moneda" value="BOB" checked> <label class="small">BOB</label></div>
+                        <div class="form-check"><input class="form-check-input" type="radio" name="pos-moneda" value="USD" disabled> <label class="small text-muted">USD</label></div>
+                      </div>
+                    </div>
                   </div>
-                  <div id="pos-lista-productos"></div>
-                </div>
-                <!-- Lista de Combos -->
-                <div class="tab-pane fade" id="tab-combos">
-                  <div class="d-flex justify-content-between text-muted small fw-bold mb-2 pb-1 border-bottom">
-                    <span>Combo</span><span>Precio</span><span></span>
+
+                  <!-- Carrito Productos -->
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="fw-bold mb-0 text-muted"><i class="fa fa-box"></i> Productos</h6>
+                    <div class="d-flex align-items-center gap-2 small">Descuento: <input type="number" id="pos-desc-prod-perc" class="form-control form-control-sm w-50" value="0" min="0" max="100" oninput="actualizarTicketPOS()"> %</div>
                   </div>
-                  <div id="pos-lista-combos"></div>
+                  <div id="pos-cart-productos" class="mb-3 min-vh-25"></div>
+                  
+                  <!-- Carrito Combos -->
+                  <div class="d-flex justify-content-between align-items-center mb-2 border-top pt-3">
+                    <h6 class="fw-bold mb-0 text-muted"><i class="fa fa-gift"></i> Combos</h6>
+                    <div class="d-flex align-items-center gap-2 small">Descuento: <input type="number" id="pos-desc-combo-perc" class="form-control form-control-sm w-50" value="0" min="0" max="100" oninput="actualizarTicketPOS()"> %</div>
+                  </div>
+                  <div id="pos-cart-combos" class="mb-3 min-vh-25"></div>
+
+                  <!-- Resumen Oscuro -->
+                  <div class="pos-resumen-dark mb-3">
+                    <div class="d-flex justify-content-between small text-light mb-1">
+                      <span>Subtotal general:</span><span id="pos-res-subtotal">Bs 0.00</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center small text-light mb-1">
+                      <span>Desc. Global (%):</span>
+                      <input type="number" id="pos-desc-global-perc" class="form-control form-control-sm bg-dark text-white border-secondary text-end p-1" style="width: 70px;" value="0" min="0" max="100" oninput="actualizarTicketPOS()">
+                    </div>
+                    
+                    <div class="d-flex justify-content-between small text-danger mb-2">
+                      <span>Total descuentos:</span><span id="pos-res-descuento">- Bs 0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between fs-4 fw-bold text-white border-top pt-2 mt-2">
+                      <span>TOTAL A COBRAR:</span><span id="pos-res-total">Bs 0.00</span>
+                    </div>
+                  </div>
+
+                  <input type="text" class="form-control mb-3" id="pos-observacion" placeholder="Observación (opcional)">
+                  
+                  <button class="btn btn-fabmat w-100 py-3 fw-bold fs-5" onclick="confirmarVenta()">
+                    <i class="fa fa-check-circle me-2"></i> Confirmar venta
+                  </button>
                 </div>
               </div>
             </div>
-          </div>
-
-          <!-- Columna Derecha: Facturación -->
-          <div class="col-md-7">
-            <div class="card border-0 shadow-sm p-3">
-              <!-- Encabezado Cliente y Moneda -->
-              <div class="row g-3 mb-3 border-bottom pb-3">
-                <div class="col-md-8">
-                  <label class="form-label small text-muted mb-1">Cliente</label>
-                  <select class="form-select form-select-sm" id="pos-cliente"></select>
-                </div>
-                <div class="col-md-4">
-                  <label class="form-label small text-muted mb-1">Moneda</label>
-                  <div class="d-flex gap-3 mt-1">
-                    <div class="form-check"><input class="form-check-input" type="radio" name="pos-moneda" value="BOB" checked> <label class="small">BOB</label></div>
-                    <div class="form-check"><input class="form-check-input" type="radio" name="pos-moneda" value="USD" disabled> <label class="small text-muted">USD</label></div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Carrito Productos -->
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <h6 class="fw-bold mb-0 text-muted"><i class="fa fa-box"></i> Productos</h6>
-                <div class="d-flex align-items-center gap-2 small">Descuento: <input type="number" id="pos-desc-prod-perc" class="form-control form-control-sm w-50" value="0" min="0" max="100" oninput="actualizarTicketPOS()"> %</div>
-              </div>
-              <div id="pos-cart-productos" class="mb-3 min-vh-25"></div>
-              
-              <!-- Carrito Combos -->
-              <div class="d-flex justify-content-between align-items-center mb-2 border-top pt-3">
-                <h6 class="fw-bold mb-0 text-muted"><i class="fa fa-gift"></i> Combos</h6>
-                <div class="d-flex align-items-center gap-2 small">Descuento: <input type="number" id="pos-desc-combo-perc" class="form-control form-control-sm w-50" value="0" min="0" max="100" oninput="actualizarTicketPOS()"> %</div>
-              </div>
-              <div id="pos-cart-combos" class="mb-3 min-vh-25"></div>
-
-              <!-- Resumen Oscuro -->
-              <div class="pos-resumen-dark mb-3">
-                <div class="d-flex justify-content-between small text-light mb-1">
-                  <span>Subtotal general:</span><span id="pos-res-subtotal">Bs 0.00</span>
-                </div>
-                
-                <div class="d-flex justify-content-between align-items-center small text-light mb-1">
-                  <span>Desc. Global (%):</span>
-                  <input type="number" id="pos-desc-global-perc" class="form-control form-control-sm bg-dark text-white border-secondary text-end p-1" style="width: 70px;" value="0" min="0" max="100" oninput="actualizarTicketPOS()">
-                </div>
-                
-                <div class="d-flex justify-content-between small text-danger mb-2">
-                  <span>Total descuentos:</span><span id="pos-res-descuento">- Bs 0.00</span>
-                </div>
-                <div class="d-flex justify-content-between fs-4 fw-bold text-white border-top pt-2 mt-2">
-                  <span>TOTAL A COBRAR:</span><span id="pos-res-total">Bs 0.00</span>
-                </div>
-              </div>
-
-              <input type="text" class="form-control mb-3" id="pos-observacion" placeholder="Observación (opcional)">
-              
-              <button class="btn btn-fabmat w-100 py-3 fw-bold fs-5" onclick="confirmarVenta()">
-                <i class="fa fa-check-circle me-2"></i> Confirmar venta
-              </button>
-            </div>
-          </div>
-        </div>
           </div> <!-- Fin Row del POS -->
           
           <!-- TAB: HISTORIAL DE VENTAS -->
@@ -1119,7 +1120,7 @@
               <!-- ALERTA TIPO DE CAMBIO -->
               <div class="col-12">
                 <div class="alert alert-primary py-2 mb-0 d-flex align-items-center" role="alert" style="background-color: #eaf4ff; border-color: #cbe0fe; color: #084298;">
-                  <i class="fa fa-tags me-2"></i> Tipo de cambio activo: &nbsp;<b>1 USD = Bs <span id="modal-tc-display">10.5000</span></b> &nbsp;| <a href="#" onclick="bootstrap.Modal.getInstance(document.getElementById('modalProducto')).hide(); cambiarVista('tipo_cambio', document.querySelectorAll('.nav-link')[11]);" class="ms-2 text-decoration-none">Modificar tipo de cambio</a>
+                  <i class="fa fa-tags me-2"></i> Tipo de cambio activo: &nbsp;<b>1 USD = Bs <span id="modal-tc-display">10.5000</span></b> &nbsp;| <a href="#" onclick="bootstrap.Modal.getInstance(document.getElementById('modalProducto')).hide(); cambiarVista('tipo_cambio', document.getElementById('nav-btn-tc'));" class="ms-2 text-decoration-none">Modificar tipo de cambio</a>
                 </div>
               </div>
 
@@ -1575,7 +1576,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="js/config.js?v=10"></script>
-  <script src="js/main.js?v=10"></script>
+  <script src="js/config.js?v=11"></script>
+  <script src="js/main.js?v=11"></script>
 </body>
 </html>

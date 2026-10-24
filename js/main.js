@@ -134,11 +134,9 @@
     // ARQUITECTURA DE NAVEGACIÓN Y MANEJO DE ESTADO
     // ==========================================
     
-    // Variables globales para la cola de estado en móviles
     let vistaPendiente = null;
     let elementoPendiente = null;
 
-    // 1. GESTOR DE ESTADO: Intercepta el clic
     function agendarCambioVista(vista, element) {
       if (window.innerWidth < 992) {
         vistaPendiente = vista;
@@ -148,7 +146,6 @@
       }
     }
 
-    // 2. EVENT LISTENER NATIVO: Escucha el fin de la animación de Bootstrap
     document.addEventListener('hidden.bs.offcanvas', function (event) {
       if (event.target.id === 'sidebarOffcanvas' && vistaPendiente !== null) {
         cambiarVista(vistaPendiente, elementoPendiente);
@@ -213,7 +210,6 @@
       }
     }
 
-    // Función asíncrona para puentear el bloqueo táctil de Bootstrap en móviles
     function ejecutarMenuMovil(vista, elemento) {
       if (window.innerWidth < 992) {
         const btnCerrar = document.querySelector('.offcanvas-header .btn-close');
@@ -255,7 +251,7 @@
           method: "POST",
           redirect: "follow",
           headers: {
-            "Content-Type": "text/plain;charset=utf-8" // Evita la solicitud Preflight OPTIONS (CORS)
+            "Content-Type": "text/plain;charset=utf-8"
           },
           body: JSON.stringify({ action: action, payload: payload })
         });
@@ -302,7 +298,7 @@
       }
     } 
 
-    let chartVentas7Dias = null; // Variable global para destruir gráfico previo
+    let chartVentas7Dias = null;
     
     async function cargarDashboard() {
       const res = await apiGet('getDashboardData');
@@ -391,14 +387,12 @@
     // ==========================================
 
     async function cargarProductos() {
-      // 1. Asegurar que tenemos las categorías cargadas para el menú select
       if(!state.categorias || state.categorias.length === 0) {
          const resCat = await apiGet('getCategorias');
          if(resCat.success) state.categorias = resCat.data;
       }
       actualizarSelectCategorias();
 
-      // 2. Cargar los productos
       const res = await apiGet('getProductos');
       if (res.success) {
         state.productos = res.data;
@@ -413,7 +407,7 @@
       select.innerHTML = '<option value="">Selecciona una categoría</option>';
       if(state.categorias) {
           state.categorias.forEach(c => {
-             if(c.estado === 'Activa') { // Solo muestra categorías activas
+             if(c.estado === 'Activa') {
                  select.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`;
              }
           });
@@ -454,7 +448,6 @@
       });
     }
 
-    // Filtro buscador dinámico
     function filtrarTablaProductos() {
       const filtro = document.getElementById('buscar-prod').value.toLowerCase();
       if (!state.productos) return;
@@ -466,7 +459,6 @@
       renderTablaProductos(listaFiltrada);
     }
 
-    // MOTOR DE COMPRESIÓN DE IMÁGENES
     function previsualizarImagen(input) {
       const file = input.files[0];
       if (!file) return resetPreview();
@@ -476,7 +468,7 @@
         const img = new Image();
         img.onload = function() {
           const canvas = document.createElement('canvas');
-          const MAX_SIZE = 300; // Resolución optimizada para inventario
+          const MAX_SIZE = 300;
           let width = img.width; let height = img.height;
           
           if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } 
@@ -504,7 +496,6 @@
       document.getElementById('prod-imagen-base64').value = '';
     }
 
-    // Evento: Al abrir el modal, actualizar TC y sugerir SKU
     document.addEventListener('DOMContentLoaded', () => {
       const modalProd = document.getElementById('modalProducto');
       if(modalProd) {
@@ -624,7 +615,6 @@
       if (!state.combos) { const c = await apiGet('getCombos'); if(c.success) state.combos = c.data; }
       if (!state.clientes) { const cl = await apiGet('getClientes'); if(cl.success) state.clientes = cl.data; }
 
-      // Llenar Clientes
       const selCli = document.getElementById('pos-cliente');
       selCli.innerHTML = '<option value="Cliente Genérico - 0000000">Cliente Genérico — 0000000</option>';
       if (state.clientes) {
@@ -638,7 +628,6 @@
     }
 
     function renderizarCatalogoPOS() {
-      // Catálogo Productos
       const lstProd = document.getElementById('pos-lista-productos');
       lstProd.innerHTML = '';
       state.productos.forEach(p => {
@@ -657,7 +646,6 @@
         }
       });
 
-      // Catálogo Combos
       const lstCombo = document.getElementById('pos-lista-combos');
       lstCombo.innerHTML = '';
       if(state.combos) {
@@ -707,7 +695,6 @@
     }
 
     function actualizarTicketPOS() {
-      // Renderizar Productos
       const divProd = document.getElementById('pos-cart-productos');
       let subProd = 0; divProd.innerHTML = '';
       carritoPOS.productos.forEach((i, idx) => {
@@ -726,7 +713,6 @@
       let descProdAmt = subProd * (descProdPerc / 100);
       divProd.innerHTML += `<div class="text-end small text-muted border-top pt-1">Subtotal: Bs ${subProd.toFixed(2)} | Desc: -Bs ${descProdAmt.toFixed(2)} | <b>Total: Bs ${(subProd - descProdAmt).toFixed(2)}</b></div>`;
 
-      // Renderizar Combos
       const divCombo = document.getElementById('pos-cart-combos');
       let subCombo = 0; divCombo.innerHTML = '';
       carritoPOS.combos.forEach((i, idx) => {
@@ -745,12 +731,10 @@
       let descComboAmt = subCombo * (descComboPerc / 100);
       divCombo.innerHTML += `<div class="text-end small text-muted border-top pt-1">Subtotal: Bs ${subCombo.toFixed(2)} | Desc: -Bs ${descComboAmt.toFixed(2)} | <b>Total: Bs ${(subCombo - descComboAmt).toFixed(2)}</b></div>`;
 
-      // Actualizar Resumen
       let subtotalGeneral = subProd + subCombo;
       let descItemTotal = descProdAmt + descComboAmt;
       let subtotalPostItems = subtotalGeneral - descItemTotal;
       
-      // Calcular nuevo Descuento Global
       let descGlobalPerc = Number(document.getElementById('pos-desc-global-perc').value) || 0;
       let descGlobalAmt = subtotalPostItems * (descGlobalPerc / 100);
       
@@ -792,7 +776,6 @@
       const res = await apiPost('registrarVenta', payload);
       
       if (res.success) {
-        // Venta Exitosa
         document.getElementById('ve-codigo').innerText = `Ticket: ${res.codigoVenta}`;
         document.getElementById('ve-btn-imprimir').onclick = () => imprimirTicket(res.codigoVenta, payload);
         new bootstrap.Modal(document.getElementById('modalVentaExitosa')).show();
@@ -808,18 +791,16 @@
       } else {
         mostrarAlerta(res.message, "danger");
         
-        // CANDADO DE SEGURIDAD: Acción si el servidor detecta alteración de precios
         if (res.action === 'RELOAD') {
-          carritoPOS = { productos: [], combos: [] }; // Vaciamos el carrito peligroso
+          carritoPOS = { productos: [], combos: [] };
           actualizarTicketPOS();
           document.getElementById('pos-buscar').value = ''; 
           
-          // Forzamos al navegador a descargar los nuevos precios silenciosamente
           const [resProd, resCombo] = await Promise.all([apiGet('getProductos'), apiGet('getCombos')]);
           if(resProd.success) state.productos = resProd.data;
           if(resCombo.success) state.combos = resCombo.data;
           
-          renderizarCatalogoPOS(); // Pintar el nuevo catálogo en pantalla
+          renderizarCatalogoPOS();
         }
       }
     }
@@ -860,7 +841,6 @@
         </div>
       `;
 
-      // MÉTODO ANTI-BLOQUEO: Imprimir mediante Iframe oculto
       let iframe = document.getElementById('iframe-impresion');
       if (!iframe) {
         iframe = document.createElement('iframe');
@@ -880,7 +860,6 @@
       }, 1500);
     }
     
-    // --- NUEVAS FUNCIONES DE HISTORIAL DE VENTAS ---
     async function cargarHistorialVentas() {
       const res = await apiGet('getHistorialVentas');
       if(res.success) {
@@ -1031,7 +1010,6 @@
     // ==========================================
     
     async function cargarInventario() {
-      // 1. Cargar Stock Actual
       const resStock = await apiGet('getProductos');
       if (resStock.success) {
         state.productos = resStock.data;
@@ -1039,10 +1017,9 @@
         actualizarKPIsInventario(state.productos);
       }
       
-      // 2. Cargar Historial
       const resHist = await apiGet('getHistorialInventario');
       if (resHist.success) {
-        state.historialInventario = resHist.data.reverse(); // Mostrar más recientes primero
+        state.historialInventario = resHist.data.reverse();
         renderTablaHistorial(state.historialInventario);
       }
     }
@@ -1103,7 +1080,6 @@
             ? '<span class="badge bg-success"><i class="fa fa-arrow-down"></i> Entrada</span>'
             : '<span class="badge bg-danger"><i class="fa fa-arrow-up"></i> Salida</span>';
 
-        // LÓGICA INTELIGENTE: Detectar si el motivo contiene un código de venta (VTA-XXXX)
         let btnAccion = '';
         const matchVenta = h.motivo.match(/(VTA-\d+)/);
         if(matchVenta) {
@@ -1126,7 +1102,6 @@
       });
     }
 
-    // NUEVA FUNCIÓN: Llama a impresión desde el inventario
     async function imprimirDesdeInventario(codigoVenta) {
       if (!state.historialVentas || state.historialVentas.length === 0) {
         const res = await apiGet('getHistorialVentas');
@@ -1144,7 +1119,6 @@
       reimprimirTicket(codigoVenta);
     }
 
-    // Buscadores
     function filtrarInventario() {
       const filtro = document.getElementById('buscar-inv-stock').value.toLowerCase();
       if (!state.productos) return;
@@ -1159,7 +1133,6 @@
       renderTablaHistorial(filtrados);
     }
 
-    // KPIs
     function actualizarKPIsInventario(lista) {
         let total = lista.length;
         let normal = 0, critico = 0, sinStock = 0;
@@ -1176,7 +1149,6 @@
         document.getElementById('inv-sin').innerText = sinStock;
     }
 
-    // Funciones Modal Ajuste
     function prepararModalAjuste() {
         const select = document.getElementById('ajuste-prod');
         select.innerHTML = '<option value="">Selecciona un producto</option>';
@@ -1379,7 +1351,6 @@
       document.getElementById('rep-desde').value = desdeStr;
       document.getElementById('rep-hasta').value = hastaStr;
 
-      // Pedimos al backend SÓLO la data de ese rango específico
       const [resVentas, resCompras, resProds] = await Promise.all([
         apiGet('getHistorialVentas', { desde: desdeStr, hasta: hastaStr }),
         apiGet('getCompras', { desde: desdeStr, hasta: hastaStr }),
@@ -1706,7 +1677,6 @@
       const descuento = totalNormal * (perc / 100);
       const totalConDescuento = totalNormal - descuento;
       
-      // Auto-calcular a dólares
       const precioUsd = totalConDescuento / state.tasaCambio;
       
       document.getElementById('combo-precio-bob-display').innerText = totalConDescuento.toFixed(2);
@@ -1881,7 +1851,7 @@
     }
 
     // ==========================================
-    // MÓDULO TIPO DE CAMBIO
+    // MÓDULO TIPO DE CAMBIO (PROTEGIDO CONTRA TABLA VACÍA)
     // ==========================================
     async function cargarTipoCambioHistorial() {
       const tasaSegura = !isNaN(parseFloat(state.tasaCambio)) ? parseFloat(state.tasaCambio) : 10.50;
@@ -1898,26 +1868,27 @@
 
     function renderTablaTipoCambio(lista) {
       const tbody = document.getElementById('tabla-tc-body');
+      if (!tbody) return;
       tbody.innerHTML = '';
       
-      const listaInvertida = [...lista].reverse();
+      const listaSegura = Array.isArray(lista) ? [...lista].reverse() : [];
 
-      if(listaInvertida.length === 0) {
+      if(listaSegura.length === 0) {
         tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">No hay historial de tasas</td></tr>';
         return;
       }
 
-      listaInvertida.forEach(tc => {
+      listaSegura.forEach(tc => {
         const estadoBadge = tc.estado === 'Vigente' 
             ? '<span class="badge bg-success">Vigente</span>' 
             : '<span class="badge bg-secondary">Histórico</span>';
         
-        const fechaFormat = new Date(tc.fecha).toLocaleString('es-BO');
+        const fechaFormat = tc.fecha ? new Date(tc.fecha).toLocaleString('es-BO') : '--';
 
         tbody.innerHTML += `
           <tr>
             <td class="text-muted small">${fechaFormat}</td>
-            <td class="fw-bold">Bs. ${Number(tc.tasa_usd_bob).toFixed(2)}</td>
+            <td class="fw-bold">Bs. ${Number(tc.tasa_usd_bob || 0).toFixed(2)}</td>
             <td><i class="fa fa-user-circle text-muted"></i> ${tc.usuario || 'Sistema'}</td>
             <td>${estadoBadge}</td>
           </tr>
@@ -2018,7 +1989,7 @@
     // CONTROL DE ACCESO BASADO EN ROLES (RBAC)
     // ==========================================
     function aplicarPermisosSegunRol(rol) {
-      const links = document.querySelectorAll('.nav-link');
+      const links = document.querySelectorAll('.sidebar .nav-link');
       links.forEach(link => link.style.display = 'flex');
 
       if (rol === 'Vendedor') {
@@ -2403,12 +2374,12 @@
       const tit = document.getElementById('lic-titulo');
       if (tit) tit.value = '';
       const ivaP = document.getElementById('lic-iva-perc');
-      if (ivaP) ivaP.value = '3'; // IVA por defecto editable
+      if (ivaP) ivaP.value = '3';
       
       const tbody = document.getElementById('lic-items-body');
       if (tbody) tbody.innerHTML = '';
       
-      agregarFilaLicitacion(); // Agrega la primera fila vacía
+      agregarFilaLicitacion();
     };
 
     window.agregarFilaLicitacion = function() {
@@ -2449,7 +2420,6 @@
       let totIva = 0, totIt = 0, totOg = 0, totGanancia = 0;
 
       itemsLicitacion.forEach((item, index) => {
-        // Multiplicaciones matemáticas
         let tProf = item.cant * item.pu_prof;
         let tCosto = item.cant * item.pu_costo;
         let tSub = item.cant * item.pu_sub;
@@ -2459,12 +2429,10 @@
         let it = tSub * (itPerc / 100);
         let ganancia = dif - iva - it - item.otros_gastos;
 
-        // Sumar al acumulador global
         totProf += tProf; totCosto += tCosto; totSub += tSub;
         totDif += dif; totIva += iva; totIt += it; 
         totOg += item.otros_gastos; totGanancia += ganancia;
 
-        // Pintar ganancia individual según rentabilidad
         let colorGanancia = ganancia > 0 ? 'text-success' : (ganancia < 0 ? 'text-danger' : 'text-dark');
 
         tbody.innerHTML += `
@@ -2491,7 +2459,6 @@
         `;
       });
 
-      // Renderizar los totales de toda la matriz
       document.getElementById('lic-tot-prof').innerText = totProf.toFixed(2);
       document.getElementById('lic-tot-costo').innerText = totCosto.toFixed(2);
       document.getElementById('lic-tot-sub').innerText = totSub.toFixed(2);
@@ -2504,7 +2471,6 @@
       elGanancia.innerText = totGanancia.toFixed(2);
       elGanancia.className = `fs-6 fw-bold ${totGanancia > 0 ? 'text-success' : (totGanancia < 0 ? 'text-danger' : 'text-primary')}`;
 
-      // Cálculo del % de Rentabilidad Global de la licitación
       const margen = totSub > 0 ? (totGanancia / totSub) * 100 : 0;
       const elEstado = document.getElementById('lic-estado-general');
       elEstado.innerText = `Rentabilidad General: ${margen.toFixed(2)}%`;
