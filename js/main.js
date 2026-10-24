@@ -273,10 +273,13 @@
     // LÓGICA DE NEGOCIO
     async function cargarTipoCambio() {
       const res = await apiGet('getTipoCambio');
-      if (res.success) {
+      if (res && res.success && !isNaN(parseFloat(res.tasa))) {
         state.tasaCambio = parseFloat(res.tasa);
-        document.getElementById('tc-display').innerText = state.tasaCambio.toFixed(4);
+      } else {
+        state.tasaCambio = state.tasaCambio || 10.50;
       }
+      const tcDisplay = document.getElementById('tc-display');
+      if (tcDisplay) tcDisplay.innerText = state.tasaCambio.toFixed(4);
     }
 
     function calcularPrecios(tipo, monedaOrigen = 'usd') {
@@ -1881,11 +1884,15 @@
     // MÓDULO TIPO DE CAMBIO
     // ==========================================
     async function cargarTipoCambioHistorial() {
-      document.getElementById('tc-vista-activa').innerText = state.tasaCambio.toFixed(2);
+      const tasaSegura = !isNaN(parseFloat(state.tasaCambio)) ? parseFloat(state.tasaCambio) : 10.50;
+      const vistaActiva = document.getElementById('tc-vista-activa');
+      if (vistaActiva) vistaActiva.innerText = tasaSegura.toFixed(2);
       
       const res = await apiGet('getTipoCambioHistorial');
-      if (res.success) {
+      if (res && res.success && Array.isArray(res.data)) {
         renderTablaTipoCambio(res.data);
+      } else {
+        renderTablaTipoCambio([]);
       }
     }
 
