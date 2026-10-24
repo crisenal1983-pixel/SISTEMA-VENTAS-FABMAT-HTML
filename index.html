@@ -49,33 +49,34 @@
   </button>
 
   <!-- SIDEBAR RESPONSIVE (OFFCANVAS EN MÓVIL, FIJO EN PC) -->
-  <aside class="sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="sidebarOffcanvas">
+  <aside class="sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="sidebarOffcanvas" style="background-color: #16191c !important; height: 100vh; overflow: hidden;">
     <div class="offcanvas-header d-lg-none border-bottom">
-      <img src="logo.png" alt="FAB MAT" style="max-width: 120px; border-radius: 8px;">
-      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebarOffcanvas" aria-label="Close"></button>
+      <img src="logo.png" alt="FAB MAT" style="max-width: 110px; border-radius: 8px;">
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#sidebarOffcanvas" aria-label="Close"></button>
     </div>
     
-    <div class="offcanvas-body d-flex flex-column h-100 p-0">
-      <div class="brand-box d-none d-lg-block">
-        <img src="logo.png" alt="FAB MAT" style="max-width: 140px; border-radius: 8px;">
-        <div class="small text-muted mt-2">FabMat Bolivia © 2026</div>
+    <div class="offcanvas-body d-flex flex-column h-100 p-0" style="background-color: #16191c !important; min-height: 0; overflow: hidden;">
+      <div class="brand-box d-none d-lg-block" style="padding: 10px 15px; flex-shrink: 0;">
+        <img src="logo.png" alt="FAB MAT" style="max-width: 90px; border-radius: 8px;">
+        <div class="small text-muted mt-1" style="font-size: 11px;">FabMat Bolivia © 2026</div>
       </div>
-      <!-- CONTENEDOR DE NAVEGACIÓN CORREGIDO CON FLEX-NOWRAP Y SCROLL VERTICAL -->
-      <div class="nav flex-column flex-nowrap flex-grow-1 mt-3" style="overflow-y: auto; overflow-x: hidden; max-height: calc(100vh - 140px); padding-bottom: 100px;">
-        <button type="button" class="nav-link active text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('dashboard', this)"><i class="fa fa-chart-pie fw-bold"></i> Dashboard</button>
-        <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('categorias', this)"><i class="fa fa-tags"></i> Categorías</button>
-        <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('productos', this)"><i class="fa fa-boxes-stacked"></i> Productos</button>
-        <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('inventario', this)"><i class="fa fa-warehouse"></i> Inventario</button>
-        <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('ventas', this)"><i class="fa fa-cash-register"></i> Ventas</button>
-        <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('cotizaciones', this)"><i class="fa fa-file-signature"></i> Proformas</button>
-        <button type="button" class="nav-link text-start border-0 bg-transparent w-100" data-bs-dismiss="offcanvas" onclick="ejecutarNavegacion('licitaciones', this); prepararModalLicitacion();"><i class="fa fa-gavel"></i> Licitaciones</button>
-        <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('combos', this)"><i class="fa fa-gift"></i> Combos</button>
-        <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('compras', this)"><i class="fa fa-shopping-cart"></i> Compras</button>
-        <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('clientes', this)"><i class="fa fa-users"></i> Clientes</button>
-        <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('proveedores', this)"><i class="fa fa-truck"></i> Proveedores</button>
-        <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('reportes', this)"><i class="fa fa-chart-line"></i> Reportes</button>
-        <button type="button" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('usuarios', this)"><i class="fa fa-user-shield"></i> Usuarios</button>
-        <button type="button" id="nav-btn-tc" class="nav-link text-start border-0 bg-transparent w-100" onclick="ejecutarNavegacion('tipo_cambio', this)"><i class="fa fa-exchange-alt"></i> Tipo de cambio</button>
+
+      <!-- MENÚ SIN LA CLASE .nav PARA PROHIBIR QUE SALTE A UNA SEGUNDA COLUMNA -->
+      <div class="d-flex flex-column flex-nowrap flex-grow-1 mt-1" style="overflow-y: auto; overflow-x: hidden; min-height: 0; padding-bottom: 15px;">
+        <button type="button" class="nav-link active text-start border-0 bg-transparent w-100 py-2 px-3" style="flex-shrink: 0; font-size: 0.88rem;" onclick="ejecutarNavegacion('dashboard', this)"><i class="fa fa-chart-pie fw-bold"></i> Dashboard</button>
+        <button type="button" class="nav-link text-start border-0 bg-transparent w-100 py-2 px-3" style="flex-shrink: 0; font-size: 0.88rem;" onclick="ejecutarNavegacion('categorias', this)"><i class="fa fa-tags"></i> Categorías</button>
+        <button type="button" class="nav-link text-start border-0 bg-transparent w-100 py-2 px-3" style="flex-shrink: 0; font-size: 0.88rem;" onclick="ejecutarNavegacion('productos', this)"><i class="fa fa-boxes-stacked"></i> Productos</button>
+        <button type="button" class="nav-link text-start border-0 bg-transparent w-100 py-2 px-3" style="flex-shrink: 0; font-size: 0.88rem;" onclick="ejecutarNavegacion('inventario', this)"><i class="fa fa-warehouse"></i> Inventario</button>
+        <button type="button" class="nav-link text-start border-0 bg-transparent w-100 py-2 px-3" style="flex-shrink: 0; font-size: 0.88rem;" onclick="ejecutarNavegacion('ventas', this)"><i class="fa fa-cash-register"></i> Ventas</button>
+        <button type="button" class="nav-link text-start border-0 bg-transparent w-100 py-2 px-3" style="flex-shrink: 0; font-size: 0.88rem;" onclick="ejecutarNavegacion('cotizaciones', this)"><i class="fa fa-file-signature"></i> Proformas</button>
+        <button type="button" class="nav-link text-start border-0 bg-transparent w-100 py-2 px-3" style="flex-shrink: 0; font-size: 0.88rem;" data-bs-dismiss="offcanvas" onclick="ejecutarNavegacion('licitaciones', this); prepararModalLicitacion();"><i class="fa fa-gavel"></i> Licitaciones</button>
+        <button type="button" class="nav-link text-start border-0 bg-transparent w-100 py-2 px-3" style="flex-shrink: 0; font-size: 0.88rem;" onclick="ejecutarNavegacion('combos', this)"><i class="fa fa-gift"></i> Combos</button>
+        <button type="button" class="nav-link text-start border-0 bg-transparent w-100 py-2 px-3" style="flex-shrink: 0; font-size: 0.88rem;" onclick="ejecutarNavegacion('compras', this)"><i class="fa fa-shopping-cart"></i> Compras</button>
+        <button type="button" class="nav-link text-start border-0 bg-transparent w-100 py-2 px-3" style="flex-shrink: 0; font-size: 0.88rem;" onclick="ejecutarNavegacion('clientes', this)"><i class="fa fa-users"></i> Clientes</button>
+        <button type="button" class="nav-link text-start border-0 bg-transparent w-100 py-2 px-3" style="flex-shrink: 0; font-size: 0.88rem;" onclick="ejecutarNavegacion('proveedores', this)"><i class="fa fa-truck"></i> Proveedores</button>
+        <button type="button" class="nav-link text-start border-0 bg-transparent w-100 py-2 px-3" style="flex-shrink: 0; font-size: 0.88rem;" onclick="ejecutarNavegacion('reportes', this)"><i class="fa fa-chart-line"></i> Reportes</button>
+        <button type="button" class="nav-link text-start border-0 bg-transparent w-100 py-2 px-3" style="flex-shrink: 0; font-size: 0.88rem;" onclick="ejecutarNavegacion('usuarios', this)"><i class="fa fa-user-shield"></i> Usuarios</button>
+        <button type="button" id="nav-btn-tc" class="nav-link text-start border-0 bg-transparent w-100 py-2 px-3" style="flex-shrink: 0; font-size: 0.88rem;" onclick="ejecutarNavegacion('tipo_cambio', this)"><i class="fa fa-exchange-alt"></i> Tipo de cambio</button>
       </div>
     </div>
   </aside>
