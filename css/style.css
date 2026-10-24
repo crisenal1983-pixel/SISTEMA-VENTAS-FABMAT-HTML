@@ -10,13 +10,11 @@ body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   overflow-x: hidden;
 }
-
-/* Layout Base y Scroll Forzado en Sidebar */
 .sidebar {
   width: 240px;
   height: 100vh !important;
   max-height: 100vh !important;
-  background: var(--fabmat-dark);
+  background: var(--fabmat-dark) !important;
   position: fixed;
   top: 0;
   left: 0;
@@ -27,7 +25,6 @@ body {
   overflow-y: auto !important;
   overflow-x: hidden !important;
 }
-
 .sidebar .offcanvas-body {
   display: flex !important;
   flex-direction: column !important;
@@ -37,30 +34,27 @@ body {
   overflow-y: auto !important;
   overflow-x: hidden !important;
   padding: 0 !important;
+  background: var(--fabmat-dark) !important;
 }
-
 .sidebar .nav {
+  display: flex !important;
   flex-direction: column !important;
   flex-wrap: nowrap !important;
   flex-grow: 1 !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
-  padding-bottom: 40px !important;
+  padding-bottom: 15px !important;
+  margin-top: 5px !important;
 }
-
-/* COMPORTAMIENTO BASE (CELULARES) */
 .main-wrapper {
   margin-left: 0;
   padding: 15px;
 }
-
-/* COMPORTAMIENTO EN PC (PANTALLAS GRANDES) */
 @media (min-width: 992px) {
   .main-wrapper {
     margin-left: 250px;
     padding: 30px;
   }
-  
   .sidebar,
   .sidebar.offcanvas-lg {
     width: 250px !important;
@@ -73,16 +67,14 @@ body {
     overflow-y: auto !important;
   }
 }
-
-/* Compactamos el cuadro del logo en PC para ganar espacio vertical */
 .brand-box {
-  padding: 10px 15px;
+  padding: 10px 15px !important;
   text-align: center;
   background: #0d0f11;
   flex-shrink: 0;
 }
 .brand-box img {
-  max-width: 95px !important;
+  max-width: 90px !important;
   height: auto;
 }
 .brand-logo {
@@ -95,8 +87,6 @@ body {
   display: inline-block;
   letter-spacing: 1px;
 }
-
-/* Botones del menú más compactos para que los 14 entren sin cortar */
 .sidebar .nav-link {
   color: #b2b9bf;
   padding: 7px 18px !important;
@@ -116,7 +106,6 @@ body {
   color: #fff !important;
   font-weight: 600;
 }
-
 .btn-fabmat {
   background-color: var(--fabmat-red);
   color: #fff;
@@ -131,8 +120,6 @@ body {
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
-
-/* Pantalla de Login */
 #login-wrapper {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100vh;
@@ -150,8 +137,6 @@ body {
   max-width: 400px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
-
-/* Estilos Punto de Venta */
 .pos-resumen-dark {
   background-color: var(--fabmat-dark);
   color: #fff;
@@ -167,8 +152,6 @@ body {
 }
 .item-row { border-bottom: 1px solid #f0f0f0; padding: 8px 0; }
 .item-row:last-child { border-bottom: none; }
-
-/* Estilos de Impresión para Reportes */
 @media print {
   body * { visibility: hidden; }
   .sidebar, header, .modal { display: none !important; }
@@ -177,8 +160,6 @@ body {
   #vista-reportes { position: absolute; left: 0; top: 0; width: 100%; }
   button, input, select { display: none !important; }
 }
-
-/* Loading overlay */
 #spinner-overlay {
   position: fixed;
   top: 0;
