@@ -2401,7 +2401,22 @@
     // ==========================================
     let itemsLicitacion = [];
 
-    window.prepararModalLicitacion = function() {
+    window.prepararModalLicitacion = async function() {
+      // Cargar productos de la BD si aún no están en memoria
+      if (!state.productos || state.productos.length === 0) {
+        const res = await apiGet('getProductos');
+        if (res && res.success) state.productos = res.data;
+      }
+
+      // Llenar el datalist con los productos de la base de datos
+      const datalist = document.getElementById('lic-datalist-productos');
+      if (datalist && state.productos) {
+        datalist.innerHTML = '';
+        state.productos.forEach(p => {
+          datalist.innerHTML += `<option value="${p.nombre}">${p.codigo_sku} | Venta: Bs ${Number(p.precio_venta_bob).toFixed(2)} | Costo: Bs ${Number(p.precio_compra_bob).toFixed(2)}</option>`;
+        });
+      }
+
       itemsLicitacion = [];
       const tit = document.getElementById('lic-titulo');
       if (tit) tit.value = '';
@@ -2424,8 +2439,17 @@
     };
 
     window.actualizarItemLicitacion = function(index, campo, valor) {
-      if(campo === 'desc') {
-        itemsLicitacion[index][campo] = valor;
+      if (campo === 'desc') {
+        itemsLicitacion[index].desc = valor;
+        
+        // Si el texto coincide con un producto de la BD, autocompletar sus precios base
+        if (state.productos && state.productos.length > 0) {
+          const prodEncontrado = state.productos.find(p => p.nombre.toLowerCase() === valor.trim().toLowerCase());
+          if (prodEncontrado) {
+            itemsLicitacion[index].pu_prof = Number(prodEncontrado.precio_venta_bob) || 0;
+            itemsLicitacion[index].pu_costo = Number(prodEncontrado.precio_compra_bob) || 0;
+          }
+        }
       } else {
         let valNum = parseFloat(valor) || 0;
         if (valNum < 0) valNum = 0;
@@ -2436,17 +2460,17 @@
 
     window.eliminarFilaLicitacion = function(index) {
       itemsLicitacion.splice(index, 1);
-      if(itemsLicitacion.length === 0) agregarFilaLicitacion();
+      if (itemsLicitacion.length === 0) agregarFilaLicitacion();
       else renderTablaLicitacion();
     };
 
     window.renderTablaLicitacion = function() {
       const tbody = document.getElementById('lic-items-body');
-      if(!tbody) return;
+      if (!tbody) return;
       tbody.innerHTML = '';
       
       const ivaPerc = parseFloat(document.getElementById('lic-iva-perc').value) || 0;
-      const itPerc = 3; // IT fijo e inamovible (3%)
+      const itPerc = 3; // IT fijo (3%)
       
       let totProf = 0, totCosto = 0, totSub = 0, totDif = 0;
       let totIva = 0, totIt = 0, totOg = 0, totGanancia = 0;
@@ -2465,28 +2489,38 @@
         totDif += dif; totIva += iva; totIt += it; 
         totOg += item.otros_gastos; totGanancia += ganancia;
 
-        let colorGanancia = ganancia > 0 ? 'text-success' : (ganancia < 0 ? 'text-danger' : 'text-dark');
+        // Estilo resaltado para la celda Ganancia de cada fila
+        let estiloCeldaGanancia = 'background-color: #cfe2ff; color: #084298; border: 2px solid #0d6efd;';
+        if (ganancia > 0) {
+          estiloCeldaGanancia = 'background-color: #d1e7dd; color: #0f5132; border: 2px solid #198754;';
+        } else if (ganancia < 0) {
+          estiloCeldaGanancia = 'background-color: #f8d7da; color: #842029; border: 2px solid #dc3545;';
+        }
 
         tbody.innerHTML += `
           <tr>
-            <td><input type="text" class="form-control form-control-sm border-secondary" placeholder="Describa el producto..." value="${item.desc}" onchange="actualizarItemLicitacion(${index}, 'desc', this.value)"></td>
-            <td><input type="number" class="form-control form-control-sm text-center border-secondary px-1" value="${item.cant}" onchange="actualizarItemLicitacion(${index}, 'cant', this.value)"></td>
+            <td>
+              <input type="text" list="lic-datalist-productos" class="form-control form-control-sm border-secondary fw-semibold" placeholder="Elige de tu BD o escribe..." value="${item.desc.replace(/"/g, '"')}" onchange="actualizarItemLicitacion(${index}, 'desc', this.value)">
+            </td>
+            <td>
+              <input type="number" min="1" class="form-control form-control-sm text-center border-secondary fw-bold px-1" style="min-width: 75px; font-size: 13px;" value="${item.cant}" onchange="actualizarItemLicitacion(${index}, 'cant', this.value)">
+            </td>
             
-            <td class="bg-light"><input type="number" class="form-control form-control-sm text-end border-secondary px-1" value="${item.pu_prof}" onchange="actualizarItemLicitacion(${index}, 'pu_prof', this.value)"></td>
-            <td class="text-end bg-light align-middle text-muted">${tProf.toFixed(2)}</td>
+            <td class="bg-light"><input type="number" step="0.01" class="form-control form-control-sm text-end border-secondary px-1" value="${item.pu_prof}" onchange="actualizarItemLicitacion(${index}, 'pu_prof', this.value)"></td>
+            <td class="text-end bg-light align-middle text-muted fw-semibold">${tProf.toFixed(2)}</td>
             
-            <td style="background-color: #fdf5d3;"><input type="number" class="form-control form-control-sm text-end border-warning px-1" value="${item.pu_costo}" onchange="actualizarItemLicitacion(${index}, 'pu_costo', this.value)"></td>
-            <td class="text-end align-middle text-muted" style="background-color: #fdf5d3;">${tCosto.toFixed(2)}</td>
+            <td style="background-color: #fef3c7;"><input type="number" step="0.01" class="form-control form-control-sm text-end border-warning px-1" value="${item.pu_costo}" onchange="actualizarItemLicitacion(${index}, 'pu_costo', this.value)"></td>
+            <td class="text-end align-middle fw-semibold" style="background-color: #fef3c7; color: #92400e;">${tCosto.toFixed(2)}</td>
             
-            <td style="background-color: #e5f6ed;"><input type="number" class="form-control form-control-sm text-end border-success px-1" value="${item.pu_sub}" onchange="actualizarItemLicitacion(${index}, 'pu_sub', this.value)"></td>
-            <td class="text-end align-middle fw-bold" style="background-color: #e5f6ed;">${tSub.toFixed(2)}</td>
+            <td style="background-color: #dcfce7;"><input type="number" step="0.01" class="form-control form-control-sm text-end border-success px-1" value="${item.pu_sub}" onchange="actualizarItemLicitacion(${index}, 'pu_sub', this.value)"></td>
+            <td class="text-end align-middle fw-bold text-success" style="background-color: #dcfce7;">${tSub.toFixed(2)}</td>
             
-            <td class="text-end align-middle text-primary">${dif.toFixed(2)}</td>
+            <td class="text-end align-middle text-primary fw-semibold">${dif.toFixed(2)}</td>
             <td class="text-end align-middle text-danger">${iva.toFixed(2)}</td>
             <td class="text-end align-middle text-danger">${it.toFixed(2)}</td>
-            <td><input type="number" class="form-control form-control-sm text-end border-secondary px-1" value="${item.otros_gastos}" onchange="actualizarItemLicitacion(${index}, 'otros_gastos', this.value)"></td>
-            <td class="text-end align-middle fw-bold ${colorGanancia}">${ganancia.toFixed(2)}</td>
-            <td class="text-center"><button class="btn btn-sm text-danger p-0 m-0" onclick="eliminarFilaLicitacion(${index})"><i class="fa fa-trash-alt"></i></button></td>
+            <td><input type="number" step="0.01" class="form-control form-control-sm text-end border-secondary px-1" value="${item.otros_gastos}" onchange="actualizarItemLicitacion(${index}, 'otros_gastos', this.value)"></td>
+            <td class="text-end align-middle fw-bold fs-6" style="${estiloCeldaGanancia}">${ganancia.toFixed(2)}</td>
+            <td class="text-center align-middle"><button class="btn btn-sm text-danger p-0 m-0" onclick="eliminarFilaLicitacion(${index})"><i class="fa fa-trash-alt"></i></button></td>
           </tr>
         `;
       });
@@ -2501,7 +2535,13 @@
       
       const elGanancia = document.getElementById('lic-tot-ganancia');
       elGanancia.innerText = totGanancia.toFixed(2);
-      elGanancia.className = `fs-6 fw-bold ${totGanancia > 0 ? 'text-success' : (totGanancia < 0 ? 'text-danger' : 'text-primary')}`;
+      if (totGanancia > 0) {
+        elGanancia.style.cssText = 'background-color: #198754; color: #ffffff; border: 2px solid #0f5132;';
+      } else if (totGanancia < 0) {
+        elGanancia.style.cssText = 'background-color: #dc3545; color: #ffffff; border: 2px solid #842029;';
+      } else {
+        elGanancia.style.cssText = 'background-color: #cfe2ff; color: #084298; border: 2px solid #0d6efd;';
+      }
 
       const margen = totSub > 0 ? (totGanancia / totSub) * 100 : 0;
       const elEstado = document.getElementById('lic-estado-general');

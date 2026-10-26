@@ -140,13 +140,16 @@
 
       <!-- MODAL: SIMULADOR DE RENTABILIDAD (TIPO EXCEL) -->
       <div class="modal fade" id="modalLicitacionNuevo" tabindex="-1">
-        <div class="modal-dialog modal-xl">
-          <div class="modal-content">
+        <div class="modal-dialog" style="max-width: 96vw; width: 96vw; margin: 1.5vh auto;">
+          <div class="modal-content shadow-lg" style="resize: both; overflow: auto; min-width: 850px; min-height: 520px;">
             <div class="modal-header bg-dark text-white">
               <h5 class="modal-title fw-bold"><i class="fa fa-table me-2"></i> Matriz de Evaluación de Subastas</h5>
               <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body bg-light">
+              <!-- Lista desplegable conectada a los productos de la Base de Datos -->
+              <datalist id="lic-datalist-productos"></datalist>
+
               <div class="row g-3 mb-3">
                 <div class="col-md-6">
                   <label class="form-label small fw-bold">Título de la Licitación</label>
@@ -162,51 +165,54 @@
                 </div>
               </div>
               
-              <div class="table-responsive bg-white border shadow-sm" style="max-height: 450px; overflow-y: auto;">
-                <table class="table table-bordered table-hover align-middle mb-0 text-sm" style="font-size: 11px; min-width: 1300px;">
-                  <thead class="sticky-top text-center text-white" style="z-index: 2;">
+              <div class="table-responsive bg-white border shadow-sm" style="max-height: 60vh; overflow-y: auto;">
+                <table class="table table-bordered table-hover align-middle mb-0" style="font-size: 12px; width: 100%; min-width: 1250px;">
+                  <thead class="sticky-top text-center" style="z-index: 2;">
                     <tr>
-                      <th style="width: 15%; background:#343a40;">Descripción del Bien</th>
-                      <th style="width: 4%; background:#343a40;">Cant.</th>
-                      <th style="width: 7%; background:#6c757d;">P.U. Proforma</th>
-                      <th style="width: 8%; background:#6c757d;">Tot. Proforma</th>
-                      <th style="width: 7%; background:#d39e00;">P.U. Costo</th>
-                      <th style="width: 8%; background:#d39e00;">Tot. Costo</th>
-                      <th style="width: 7%; background:#198754;">P.U. Subasta</th>
-                      <th style="width: 8%; background:#198754;">Tot. Subasta</th>
-                      <th style="width: 7%; background:#343a40;">Diferencia</th>
-                      <th style="width: 6%; background:#343a40;">IVA</th>
-                      <th style="width: 6%; background:#343a40;">IT (3%)</th>
-                      <th style="width: 7%; background:#343a40;">O. Gastos</th>
-                      <th style="width: 7%; background:#343a40;">Ganancia</th>
-                      <th style="width: 3%; background:#343a40;"></th>
+                      <th style="width: 20%; min-width: 220px; background:#212529; color:#ffffff !important;">Descripción del Bien (Elegir o Editar)</th>
+                      <th style="width: 6%; min-width: 85px; background:#212529; color:#ffffff !important;">Cant.</th>
+                      <th style="width: 7%; background:#495057; color:#ffffff !important;">P.U. Proforma</th>
+                      <th style="width: 7%; background:#495057; color:#ffffff !important;">Tot. Proforma</th>
+                      <th style="width: 7%; background:#b45309; color:#ffffff !important;">P.U. Costo</th>
+                      <th style="width: 7%; background:#b45309; color:#ffffff !important;">Tot. Costo</th>
+                      <th style="width: 7%; background:#15803d; color:#ffffff !important;">P.U. Subasta</th>
+                      <th style="width: 7%; background:#15803d; color:#ffffff !important;">Tot. Subasta</th>
+                      <th style="width: 7%; background:#212529; color:#ffffff !important;">Diferencia</th>
+                      <th style="width: 5%; background:#212529; color:#ffffff !important;">IVA</th>
+                      <th style="width: 5%; background:#212529; color:#ffffff !important;">IT (3%)</th>
+                      <th style="width: 6%; background:#212529; color:#ffffff !important;">O. Gastos</th>
+                      <th style="width: 7%; background:#0d6efd; color:#ffffff !important; font-size: 13px;">⭐ GANANCIA</th>
+                      <th style="width: 2%; background:#212529; color:#ffffff !important;"></th>
                     </tr>
                   </thead>
                   <tbody id="lic-items-body"></tbody>
-                  <tfoot class="table-light fw-bold sticky-bottom" style="z-index: 2;">
+                  <tfoot class="table-light fw-bold sticky-bottom" style="z-index: 2; font-size: 13px;">
                     <tr class="text-end">
-                      <td colspan="3">TOTALES (Bs)</td>
-                      <td id="lic-tot-prof" class="text-dark bg-light">0.00</td>
+                      <td colspan="3" class="align-middle">TOTALES (Bs)</td>
+                      <td id="lic-tot-prof" class="text-dark bg-light align-middle">0.00</td>
                       <td class="bg-light"></td>
-                      <td id="lic-tot-costo" class="text-warning text-darken" style="background-color: #fdf5d3;">0.00</td>
+                      <td id="lic-tot-costo" class="align-middle" style="background-color: #fef3c7; color: #92400e;">0.00</td>
                       <td class="bg-light"></td>
-                      <td id="lic-tot-sub" class="text-success" style="background-color: #e5f6ed;">0.00</td>
-                      <td id="lic-tot-dif" class="text-primary bg-light">0.00</td>
-                      <td id="lic-tot-iva" class="text-danger bg-light">0.00</td>
-                      <td id="lic-tot-it" class="text-danger bg-light">0.00</td>
-                      <td id="lic-tot-og" class="bg-light">0.00</td>
-                      <td id="lic-tot-ganancia" class="fs-6 text-dark bg-light">0.00</td>
+                      <td id="lic-tot-sub" class="text-success align-middle" style="background-color: #dcfce7;">0.00</td>
+                      <td id="lic-tot-dif" class="text-primary bg-light align-middle">0.00</td>
+                      <td id="lic-tot-iva" class="text-danger bg-light align-middle">0.00</td>
+                      <td id="lic-tot-it" class="text-danger bg-light align-middle">0.00</td>
+                      <td id="lic-tot-og" class="bg-light align-middle">0.00</td>
+                      <td id="lic-tot-ganancia" class="fs-6 align-middle" style="background-color: #cfe2ff; color: #084298; border: 2px solid #0d6efd;">0.00</td>
                       <td class="bg-light"></td>
                     </tr>
                   </tfoot>
                 </table>
               </div>
-              <button class="btn btn-sm btn-secondary mt-3" onclick="agregarFilaLicitacion()"><i class="fa fa-plus"></i> Añadir Nueva Fila</button>
+              <div class="d-flex justify-content-between align-items-center mt-3">
+                <button class="btn btn-sm btn-secondary" onclick="agregarFilaLicitacion()"><i class="fa fa-plus"></i> Añadir Nueva Fila</button>
+                <small class="text-muted"><i class="fa fa-arrows-alt me-1"></i> Puedes estirar la esquina inferior derecha del cuadro con el mouse para ampliar</small>
+              </div>
             </div>
             <div class="modal-footer d-flex justify-content-between align-items-center">
               <div id="lic-estado-general" class="fw-bold fs-5 text-muted">Margen: 0.00%</div>
               <div>
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cerrar</button>
                 <button type="button" class="btn btn-fabmat"><i class="fa fa-save"></i> Guardar Evaluación</button>
               </div>
             </div>
