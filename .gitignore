@@ -1,5 +1,5 @@
 # Ignorar configuración con claves privadas
-js/config.js
+#js/config.js
 
 # Ignorar archivos del sistema operativo
 .DS_Store
