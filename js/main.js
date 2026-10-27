@@ -2401,32 +2401,97 @@
     // ==========================================
     let itemsLicitacion = [];
 
-    window.prepararModalLicitacion = async function() {
-      // Cargar productos de la BD si aún no están en memoria
+    function obtenerEntidadesGuardadas() {
+      const guardadas = localStorage.getItem('fabmat_entidades_licitacion');
+      if (guardadas) {
+        try { return JSON.parse(guardadas); } catch (e) {}
+      }
+      const porDefecto = [
+        'CAJA NACIONAL DE SALUD (CNS)',
+        'HODE MATERNO INFANTIL - CNS',
+        'GOBIERNO AUTÓNOMO MUNICIPAL DE LA PAZ',
+        'GOBIERNO AUTÓNOMO MUNICIPAL DE EL ALTO',
+        'MINISTERIO DE SALUD Y DEPORTES'
+      ];
+      localStorage.setItem('fabmat_entidades_licitacion', JSON.stringify(porDefecto));
+      return porDefecto;
+    }
+
+    function cargarSelectEntidades(seleccionada = '') {
+      const select = document.getElementById('lic-entidad');
+      if (!select) return;
+      const entidades = obtenerEntidadesGuardadas();
+      select.innerHTML = '<option value="">-- Seleccione Entidad --</option>';
+      entidades.forEach(ent => {
+        const isSel = ent === seleccionada ? 'selected' : '';
+        select.innerHTML += `<option value="${ent.replace(/"/g, '"')}" ${isSel}>${ent}</option>`;
+      });
+    }
+
+    window.registrarEntidadPublica = function() {
+      const input = document.getElementById('lic-nueva-entidad');
+      const nombre = (input.value || '').trim().toUpperCase();
+      if (!nombre) {
+        mostrarAlertaModalLicitacion('Escribe el nombre de la Entidad Pública antes de agregarla.', 'warning');
+        input.focus();
+        return;
+      }
+      const entidades = obtenerEntidadesGuardadas();
+      if (!entidades.includes(nombre)) {
+        entidades.push(nombre);
+        localStorage.setItem('fabmat_entidades_licitacion', JSON.stringify(entidades));
+      }
+      cargarSelectEntidades(nombre);
+      input.value = '';
+      mostrarAlertaModalLicitacion(`Entidad "${nombre}" agregada y seleccionada.`, 'success');
+    };
+
+    function mostrarAlertaModalLicitacion(mensaje, tipo = 'warning') {
+      const box = document.getElementById('lic-modal-alert');
+      if (!box) return;
+      box.innerHTML = `
+        <div class="alert alert-${tipo} alert-dismissible fade show py-2 small fw-semibold mb-2" role="alert">
+          <i class="fa fa-info-circle me-1"></i> ${mensaje}
+          <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
+        </div>
+      `;
+    }
+
+    window.prepararModalLicitacion = async function(evaluacionEditar = null) {
+      const alertBox = document.getElementById('lic-modal-alert');
+      if (alertBox) alertBox.innerHTML = '';
+
       if (!state.productos || state.productos.length === 0) {
         const res = await apiGet('getProductos');
         if (res && res.success) state.productos = res.data;
       }
 
-      // Llenar el datalist con los productos de la base de datos
       const datalist = document.getElementById('lic-datalist-productos');
       if (datalist && state.productos) {
         datalist.innerHTML = '';
         state.productos.forEach(p => {
-          datalist.innerHTML += `<option value="${p.nombre}">${p.codigo_sku} | Venta: Bs ${Number(p.precio_venta_bob).toFixed(2)} | Costo: Bs ${Number(p.precio_compra_bob).toFixed(2)}</option>`;
+          const nombreSeguro = (p.nombre || '').replace(/"/g, '"');
+          datalist.innerHTML += `<option value="${nombreSeguro}">P.U. Proforma: Bs ${Number(p.precio_venta_bob).toFixed(2)} | Costo: Bs ${Number(p.precio_compra_bob).toFixed(2)}</option>`;
         });
       }
 
-      itemsLicitacion = [];
-      const tit = document.getElementById('lic-titulo');
-      if (tit) tit.value = '';
-      const ivaP = document.getElementById('lic-iva-perc');
-      if (ivaP) ivaP.value = '3';
-      
-      const tbody = document.getElementById('lic-items-body');
-      if (tbody) tbody.innerHTML = '';
-      
-      agregarFilaLicitacion();
+      if (evaluacionEditar) {
+        document.getElementById('lic-edit-id').value = evaluacionEditar.id;
+        cargarSelectEntidades(evaluacionEditar.entidad || '');
+        document.getElementById('lic-titulo').value = evaluacionEditar.titulo || '';
+        document.getElementById('lic-iva-perc').value = evaluacionEditar.iva || '3';
+        itemsLicitacion = JSON.parse(JSON.stringify(evaluacionEditar.items || []));
+        renderTablaLicitacion();
+      } else {
+        document.getElementById('lic-edit-id').value = '';
+        cargarSelectEntidades('');
+        const tit = document.getElementById('lic-titulo');
+        if (tit) tit.value = '';
+        const ivaP = document.getElementById('lic-iva-perc');
+        if (ivaP) ivaP.value = '3';
+        itemsLicitacion = [];
+        agregarFilaLicitacion();
+      }
     };
 
     window.agregarFilaLicitacion = function() {
@@ -2438,24 +2503,40 @@
       renderTablaLicitacion();
     };
 
-    window.actualizarItemLicitacion = function(index, campo, valor) {
-      if (campo === 'desc') {
-        itemsLicitacion[index].desc = valor;
-        
-        // Si el texto coincide con un producto de la BD, autocompletar sus precios base
-        if (state.productos && state.productos.length > 0) {
-          const prodEncontrado = state.productos.find(p => p.nombre.toLowerCase() === valor.trim().toLowerCase());
-          if (prodEncontrado) {
-            itemsLicitacion[index].pu_prof = Number(prodEncontrado.precio_venta_bob) || 0;
-            itemsLicitacion[index].pu_costo = Number(prodEncontrado.precio_compra_bob) || 0;
-          }
+    // Autocompletado instantáneo de P.U. Proforma y P.U. Costo sin perder foco ni orden de Tab
+    window.alEscribirDescripcionLicitacion = function(index, valor) {
+      itemsLicitacion[index].desc = valor;
+
+      if (state.productos && state.productos.length > 0) {
+        const textoBuscado = valor.trim().toLowerCase();
+        const prodEncontrado = state.productos.find(p => 
+          (p.nombre && p.nombre.trim().toLowerCase() === textoBuscado) ||
+          (p.codigo_sku && p.codigo_sku.trim().toLowerCase() === textoBuscado)
+        );
+
+        if (prodEncontrado) {
+          const precioProforma = Number(prodEncontrado.precio_venta_bob) || 0;
+          const precioCosto = Number(prodEncontrado.precio_compra_bob) || 0;
+
+          itemsLicitacion[index].pu_prof = precioProforma;
+          itemsLicitacion[index].pu_costo = precioCosto;
+
+          const inputProf = document.getElementById(`lic-pu-prof-${index}`);
+          const inputCosto = document.getElementById(`lic-pu-costo-${index}`);
+          if (inputProf) inputProf.value = precioProforma;
+          if (inputCosto) inputCosto.value = precioCosto;
+
+          recalcularTotalesLicitacion();
         }
-      } else {
-        let valNum = parseFloat(valor) || 0;
-        if (valNum < 0) valNum = 0;
-        itemsLicitacion[index][campo] = valNum;
       }
-      renderTablaLicitacion();
+    };
+
+    // Actualiza valores numéricos sin destruir el DOM para mantener el Tab fluido
+    window.actualizarValorCeldaLicitacion = function(index, campo, valor) {
+      let valNum = parseFloat(valor);
+      if (isNaN(valNum) || valNum < 0) valNum = 0;
+      itemsLicitacion[index][campo] = valNum;
+      recalcularTotalesLicitacion();
     };
 
     window.eliminarFilaLicitacion = function(index) {
@@ -2468,61 +2549,96 @@
       const tbody = document.getElementById('lic-items-body');
       if (!tbody) return;
       tbody.innerHTML = '';
-      
-      const ivaPerc = parseFloat(document.getElementById('lic-iva-perc').value) || 0;
-      const itPerc = 3; // IT fijo (3%)
-      
+
+      itemsLicitacion.forEach((item, index) => {
+        tbody.innerHTML += `
+          <tr>
+            <td>
+              <input type="text" id="lic-desc-${index}" list="lic-datalist-productos" class="form-control form-control-sm border-secondary fw-semibold" placeholder="Elige de tu BD o escribe..." value="${(item.desc || '').replace(/"/g, '"')}" oninput="alEscribirDescripcionLicitacion(${index}, this.value)">
+            </td>
+            <td>
+              <input type="number" id="lic-cant-${index}" min="1" class="form-control form-control-sm text-center border-secondary fw-bold px-1" style="min-width: 75px; font-size: 13px;" value="${item.cant}" oninput="actualizarValorCeldaLicitacion(${index}, 'cant', this.value)">
+            </td>
+            <td class="bg-light">
+              <input type="number" id="lic-pu-prof-${index}" step="0.01" class="form-control form-control-sm text-end border-secondary px-1" value="${item.pu_prof}" oninput="actualizarValorCeldaLicitacion(${index}, 'pu_prof', this.value)">
+            </td>
+            <td id="lic-tprof-${index}" class="text-end bg-light align-middle text-muted fw-semibold">0.00</td>
+            <td style="background-color: #fef3c7;">
+              <input type="number" id="lic-pu-costo-${index}" step="0.01" class="form-control form-control-sm text-end border-warning px-1" value="${item.pu_costo}" oninput="actualizarValorCeldaLicitacion(${index}, 'pu_costo', this.value)">
+            </td>
+            <td id="lic-tcosto-${index}" class="text-end align-middle fw-semibold" style="background-color: #fef3c7; color: #92400e;">0.00</td>
+            <td style="background-color: #dcfce7;">
+              <input type="number" id="lic-pu-sub-${index}" step="0.01" class="form-control form-control-sm text-end border-success px-1" value="${item.pu_sub}" oninput="actualizarValorCeldaLicitacion(${index}, 'pu_sub', this.value)">
+            </td>
+            <td id="lic-tsub-${index}" class="text-end align-middle fw-bold text-success" style="background-color: #dcfce7;">0.00</td>
+            <td id="lic-dif-${index}" class="text-end align-middle text-primary fw-semibold">0.00</td>
+            <td id="lic-iva-${index}" class="text-end align-middle text-danger">0.00</td>
+            <td id="lic-it-${index}" class="text-end align-middle text-danger">0.00</td>
+            <td>
+              <input type="number" id="lic-og-${index}" step="0.01" class="form-control form-control-sm text-end border-secondary px-1" value="${item.otros_gastos}" oninput="actualizarValorCeldaLicitacion(${index}, 'otros_gastos', this.value)">
+            </td>
+            <td id="lic-gan-${index}" class="text-end align-middle fw-bold fs-6">0.00</td>
+            <td class="text-center align-middle">
+              <button type="button" tabindex="-1" class="btn btn-sm text-danger p-0 m-0" onclick="eliminarFilaLicitacion(${index})" title="Eliminar fila"><i class="fa fa-trash-alt"></i></button>
+            </td>
+          </tr>
+        `;
+      });
+
+      recalcularTotalesLicitacion();
+    };
+
+    window.recalcularTotalesLicitacion = function() {
+      const ivaPerc = parseFloat(document.getElementById('lic-iva-perc')?.value) || 0;
+      const itPerc = 3;
+
       let totProf = 0, totCosto = 0, totSub = 0, totDif = 0;
       let totIva = 0, totIt = 0, totOg = 0, totGanancia = 0;
 
       itemsLicitacion.forEach((item, index) => {
-        let tProf = item.cant * item.pu_prof;
-        let tCosto = item.cant * item.pu_costo;
-        let tSub = item.cant * item.pu_sub;
-        
-        let dif = tSub - tCosto;
-        let iva = tSub * (ivaPerc / 100);
-        let it = tSub * (itPerc / 100);
-        let ganancia = dif - iva - it - item.otros_gastos;
+        const cant = Number(item.cant) || 0;
+        const puProf = Number(item.pu_prof) || 0;
+        const puCosto = Number(item.pu_costo) || 0;
+        const puSub = Number(item.pu_sub) || 0;
+        const og = Number(item.otros_gastos) || 0;
+
+        const tProf = cant * puProf;
+        const tCosto = cant * puCosto;
+        const tSub = cant * puSub;
+        const dif = tSub - tCosto;
+        const iva = tSub * (ivaPerc / 100);
+        const it = tSub * (itPerc / 100);
+        const ganancia = dif - iva - it - og;
 
         totProf += tProf; totCosto += tCosto; totSub += tSub;
-        totDif += dif; totIva += iva; totIt += it; 
-        totOg += item.otros_gastos; totGanancia += ganancia;
+        totDif += dif; totIva += iva; totIt += it;
+        totOg += og; totGanancia += ganancia;
 
-        // Estilo resaltado para la celda Ganancia de cada fila
-        let estiloCeldaGanancia = 'background-color: #cfe2ff; color: #084298; border: 2px solid #0d6efd;';
-        if (ganancia > 0) {
-          estiloCeldaGanancia = 'background-color: #d1e7dd; color: #0f5132; border: 2px solid #198754;';
-        } else if (ganancia < 0) {
-          estiloCeldaGanancia = 'background-color: #f8d7da; color: #842029; border: 2px solid #dc3545;';
+        const elTProf = document.getElementById(`lic-tprof-${index}`);
+        const elTCosto = document.getElementById(`lic-tcosto-${index}`);
+        const elTSub = document.getElementById(`lic-tsub-${index}`);
+        const elDif = document.getElementById(`lic-dif-${index}`);
+        const elIva = document.getElementById(`lic-iva-${index}`);
+        const elIt = document.getElementById(`lic-it-${index}`);
+        const elGan = document.getElementById(`lic-gan-${index}`);
+
+        if (elTProf) elTProf.innerText = tProf.toFixed(2);
+        if (elTCosto) elTCosto.innerText = tCosto.toFixed(2);
+        if (elTSub) elTSub.innerText = tSub.toFixed(2);
+        if (elDif) elDif.innerText = dif.toFixed(2);
+        if (elIva) elIva.innerText = iva.toFixed(2);
+        if (elIt) elIt.innerText = it.toFixed(2);
+
+        if (elGan) {
+          elGan.innerText = ganancia.toFixed(2);
+          if (ganancia > 0) {
+            elGan.style.cssText = 'background-color: #d1e7dd; color: #0f5132; border: 2px solid #198754;';
+          } else if (ganancia < 0) {
+            elGan.style.cssText = 'background-color: #f8d7da; color: #842029; border: 2px solid #dc3545;';
+          } else {
+            elGan.style.cssText = 'background-color: #cfe2ff; color: #084298; border: 2px solid #0d6efd;';
+          }
         }
-
-        tbody.innerHTML += `
-          <tr>
-            <td>
-              <input type="text" list="lic-datalist-productos" class="form-control form-control-sm border-secondary fw-semibold" placeholder="Elige de tu BD o escribe..." value="${item.desc.replace(/"/g, '"')}" onchange="actualizarItemLicitacion(${index}, 'desc', this.value)">
-            </td>
-            <td>
-              <input type="number" min="1" class="form-control form-control-sm text-center border-secondary fw-bold px-1" style="min-width: 75px; font-size: 13px;" value="${item.cant}" onchange="actualizarItemLicitacion(${index}, 'cant', this.value)">
-            </td>
-            
-            <td class="bg-light"><input type="number" step="0.01" class="form-control form-control-sm text-end border-secondary px-1" value="${item.pu_prof}" onchange="actualizarItemLicitacion(${index}, 'pu_prof', this.value)"></td>
-            <td class="text-end bg-light align-middle text-muted fw-semibold">${tProf.toFixed(2)}</td>
-            
-            <td style="background-color: #fef3c7;"><input type="number" step="0.01" class="form-control form-control-sm text-end border-warning px-1" value="${item.pu_costo}" onchange="actualizarItemLicitacion(${index}, 'pu_costo', this.value)"></td>
-            <td class="text-end align-middle fw-semibold" style="background-color: #fef3c7; color: #92400e;">${tCosto.toFixed(2)}</td>
-            
-            <td style="background-color: #dcfce7;"><input type="number" step="0.01" class="form-control form-control-sm text-end border-success px-1" value="${item.pu_sub}" onchange="actualizarItemLicitacion(${index}, 'pu_sub', this.value)"></td>
-            <td class="text-end align-middle fw-bold text-success" style="background-color: #dcfce7;">${tSub.toFixed(2)}</td>
-            
-            <td class="text-end align-middle text-primary fw-semibold">${dif.toFixed(2)}</td>
-            <td class="text-end align-middle text-danger">${iva.toFixed(2)}</td>
-            <td class="text-end align-middle text-danger">${it.toFixed(2)}</td>
-            <td><input type="number" step="0.01" class="form-control form-control-sm text-end border-secondary px-1" value="${item.otros_gastos}" onchange="actualizarItemLicitacion(${index}, 'otros_gastos', this.value)"></td>
-            <td class="text-end align-middle fw-bold fs-6" style="${estiloCeldaGanancia}">${ganancia.toFixed(2)}</td>
-            <td class="text-center align-middle"><button class="btn btn-sm text-danger p-0 m-0" onclick="eliminarFilaLicitacion(${index})"><i class="fa fa-trash-alt"></i></button></td>
-          </tr>
-        `;
       });
 
       document.getElementById('lic-tot-prof').innerText = totProf.toFixed(2);
@@ -2532,101 +2648,185 @@
       document.getElementById('lic-tot-iva').innerText = totIva.toFixed(2);
       document.getElementById('lic-tot-it').innerText = totIt.toFixed(2);
       document.getElementById('lic-tot-og').innerText = totOg.toFixed(2);
-      
+
       const elGanancia = document.getElementById('lic-tot-ganancia');
-      elGanancia.innerText = totGanancia.toFixed(2);
-      if (totGanancia > 0) {
-        elGanancia.style.cssText = 'background-color: #198754; color: #ffffff; border: 2px solid #0f5132;';
-      } else if (totGanancia < 0) {
-        elGanancia.style.cssText = 'background-color: #dc3545; color: #ffffff; border: 2px solid #842029;';
-      } else {
-        elGanancia.style.cssText = 'background-color: #cfe2ff; color: #084298; border: 2px solid #0d6efd;';
+      if (elGanancia) {
+        elGanancia.innerText = totGanancia.toFixed(2);
+        if (totGanancia > 0) {
+          elGanancia.style.cssText = 'background-color: #198754; color: #ffffff; border: 2px solid #0f5132;';
+        } else if (totGanancia < 0) {
+          elGanancia.style.cssText = 'background-color: #dc3545; color: #ffffff; border: 2px solid #842029;';
+        } else {
+          elGanancia.style.cssText = 'background-color: #cfe2ff; color: #084298; border: 2px solid #0d6efd;';
+        }
       }
 
       const margen = totSub > 0 ? (totGanancia / totSub) * 100 : 0;
       const elEstado = document.getElementById('lic-estado-general');
-      elEstado.innerText = `Rentabilidad General: ${margen.toFixed(2)}%`;
-      elEstado.className = `fw-bold fs-5 ${totGanancia > 0 ? 'text-success' : (totGanancia < 0 ? 'text-danger' : 'text-secondary')}`;
+      if (elEstado) {
+        elEstado.innerText = `Rentabilidad General: ${margen.toFixed(2)}%`;
+        elEstado.className = `fw-bold fs-5 ${totGanancia > 0 ? 'text-success' : (totGanancia < 0 ? 'text-danger' : 'text-secondary')}`;
+      }
     };
+
+    function obtenerLicitacionesLocales() {
+      const data = localStorage.getItem('fabmat_evaluaciones_licitacion');
+      if (data) {
+        try { return JSON.parse(data); } catch (e) {}
+      }
+      return [];
+    }
+
+    function guardarLicitacionesLocales(lista) {
+      localStorage.setItem('fabmat_evaluaciones_licitacion', JSON.stringify(lista));
+    }
+
     window.guardarLicitacion = async function() {
+      const entidad = document.getElementById('lic-entidad').value.trim();
       const titulo = document.getElementById('lic-titulo').value.trim();
+      const editId = document.getElementById('lic-edit-id').value;
+
+      if (!entidad) {
+        mostrarAlertaModalLicitacion('Por favor, selecciona o agrega una Entidad Pública.', 'danger');
+        document.getElementById('lic-entidad').focus();
+        return;
+      }
       if (!titulo) {
-        mostrarAlerta("Por favor, ingresa un Título de Licitación", "warning");
-        return;
-      }
-      if (itemsLicitacion.length === 0) {
-        mostrarAlerta("Debe agregar al menos un ítem a la matriz", "warning");
+        mostrarAlertaModalLicitacion('Por favor, ingresa el Título de la Licitación.', 'danger');
+        document.getElementById('lic-titulo').focus();
         return;
       }
 
-      // Extraer totales de la fila inferior de la tabla
-      const totCosto = document.getElementById('lic-tot-costo').innerText;
-      const totSub = document.getElementById('lic-tot-sub').innerText;
-      const totGanancia = document.getElementById('lic-tot-ganancia').innerText;
+      const totCosto = parseFloat(document.getElementById('lic-tot-costo').innerText) || 0;
+      const totSub = parseFloat(document.getElementById('lic-tot-sub').innerText) || 0;
+      const totGanancia = parseFloat(document.getElementById('lic-tot-ganancia').innerText) || 0;
 
-      const payload = {
-        titulo: titulo,
-        iva: document.getElementById('lic-iva-perc').value,
-        costo_total: parseFloat(totCosto),
-        adjudicado_total: parseFloat(totSub),
-        ganancia_neta: parseFloat(totGanancia),
-        items: itemsLicitacion,
-        usuario: state.usuarioActual ? state.usuarioActual.nombre : 'Usuario'
-      };
+      let lista = obtenerLicitacionesLocales();
+      let registro;
 
-      // Intentar enviar a Google Apps Script
-      const res = await apiPost('guardarLicitacion', payload);
-      
-      bootstrap.Modal.getInstance(document.getElementById('modalLicitacionNuevo')).hide();
-
-      if (res && res.success) {
-        mostrarAlerta("Evaluación guardada exitosamente", "success");
-        cargarLicitaciones();
-      } else {
-        // Si Apps Script aún no tiene la ruta 'guardarLicitacion', lo grabamos visualmente en la tabla local
-        mostrarAlerta("Evaluación registrada en la sesión actual", "success");
-        agregarLicitacionATablaLocal(payload);
-      }
-    };
-
-    window.cargarLicitaciones = async function() {
-      const tbody = document.getElementById('tabla-licitaciones-body');
-      if (!tbody) return;
-      
-      const res = await apiGet('getLicitaciones');
-      if (res && res.success && res.data && res.data.length > 0) {
-        tbody.innerHTML = '';
-        res.data.forEach(lic => agregarFilaTablaLicitaciones(lic));
-      } else {
-        if (!tbody.innerHTML.includes('<tr>')) {
-           tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Aún no hay evaluaciones guardadas</td></tr>';
+      if (editId) {
+        const idx = lista.findIndex(x => String(x.id) === String(editId));
+        if (idx !== -1) {
+          lista[idx].entidad = entidad;
+          lista[idx].titulo = titulo;
+          lista[idx].iva = document.getElementById('lic-iva-perc').value;
+          lista[idx].costo_total = totCosto;
+          lista[idx].subasta_total = totSub;
+          lista[idx].ganancia_neta = totGanancia;
+          lista[idx].items = JSON.parse(JSON.stringify(itemsLicitacion));
+          registro = lista[idx];
         }
       }
-    };
 
-    window.agregarLicitacionATablaLocal = function(lic) {
-      const tbody = document.getElementById('tabla-licitaciones-body');
-      if (tbody.innerHTML.includes('Aún no hay evaluaciones')) {
-        tbody.innerHTML = '';
+      if (!registro) {
+        registro = {
+          id: 'LIC-' + Date.now(),
+          fecha: new Date().toISOString(),
+          entidad: entidad,
+          titulo: titulo,
+          iva: document.getElementById('lic-iva-perc').value,
+          costo_total: totCosto,
+          subasta_total: totSub,
+          ganancia_neta: totGanancia,
+          estado: 'Pendiente',
+          items: JSON.parse(JSON.stringify(itemsLicitacion)),
+          usuario: state.usuarioActual ? state.usuarioActual.nombre : 'Cristian FabMat'
+        };
+        lista.unshift(registro);
       }
-      lic.fecha = new Date().toISOString();
-      agregarFilaTablaLicitaciones(lic);
+
+      guardarLicitacionesLocales(lista);
+
+      const modalEl = document.getElementById('modalLicitacionNuevo');
+      const modalInst = bootstrap.Modal.getOrCreateInstance(modalEl);
+      modalInst.hide();
+
+      cargarLicitaciones();
+      mostrarAlerta('Evaluación de licitación guardada correctamente.', 'success');
     };
 
-    window.agregarFilaTablaLicitaciones = function(lic) {
+    window.cambiarEstadoLicitacion = function(id, nuevoEstado, selectEl) {
+      const lista = obtenerLicitacionesLocales();
+      const item = lista.find(x => String(x.id) === String(id));
+      if (item) {
+        item.estado = nuevoEstado;
+        guardarLicitacionesLocales(lista);
+      }
+      aplicarColorSelectEstadoLicitacion(selectEl, nuevoEstado);
+    };
+
+    function aplicarColorSelectEstadoLicitacion(selectEl, estado) {
+      if (!selectEl) return;
+      if (estado === 'Adjudicado') {
+        selectEl.style.cssText = 'background-color: #dcfce7; color: #166534; border: 2px solid #22c55e; font-weight: 700;';
+      } else if (estado === 'No Adjudicado') {
+        selectEl.style.cssText = 'background-color: #fee2e2; color: #991b1b; border: 2px solid #ef4444; font-weight: 700;';
+      } else {
+        selectEl.style.cssText = 'background-color: #fef3c7; color: #92400e; border: 2px solid #f59e0b; font-weight: 700;';
+      }
+    }
+
+    window.verEditarLicitacion = function(id) {
+      const lista = obtenerLicitacionesLocales();
+      const lic = lista.find(x => String(x.id) === String(id));
+      if (!lic) return;
+      prepararModalLicitacion(lic);
+      bootstrap.Modal.getOrCreateInstance(document.getElementById('modalLicitacionNuevo')).show();
+    };
+
+    window.eliminarEvaluacionLicitacion = function(id) {
+      if (!confirm('¿Estás seguro de eliminar esta evaluación de licitación?')) return;
+      let lista = obtenerLicitacionesLocales();
+      lista = lista.filter(x => String(x.id) !== String(id));
+      guardarLicitacionesLocales(lista);
+      cargarLicitaciones();
+    };
+
+    window.cargarLicitaciones = function() {
       const tbody = document.getElementById('tabla-licitaciones-body');
-      const fechaFormat = new Date(lic.fecha).toLocaleDateString('es-BO');
-      const colorGanancia = lic.ganancia_neta > 0 ? 'text-success' : (lic.ganancia_neta < 0 ? 'text-danger' : 'text-dark');
-      
-      tbody.innerHTML += `
-        <tr>
-          <td class="text-muted small">${fechaFormat}</td>
-          <td class="fw-bold text-dark">${lic.titulo}</td>
-          <td class="text-center">${lic.items ? lic.items.length : 0}</td>
-          <td class="text-end text-muted">Bs ${Number(lic.costo_total).toFixed(2)}</td>
-          <td class="text-end fw-bold" style="color: #15803d;">Bs ${Number(lic.adjudicado_total).toFixed(2)}</td>
-          <td class="text-end fw-bold ${colorGanancia}">Bs ${Number(lic.ganancia_neta).toFixed(2)}</td>
-          <td class="text-center"><span class="badge bg-success">Guardada</span></td>
-        </tr>
-      `;
+      if (!tbody) return;
+      const lista = obtenerLicitacionesLocales();
+
+      if (lista.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Aún no hay evaluaciones guardadas</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = '';
+      lista.forEach(lic => {
+        const fechaFormat = lic.fecha ? new Date(lic.fecha).toLocaleDateString('es-BO') : '--';
+        const subTotal = lic.subasta_total !== undefined ? lic.subasta_total : (lic.adjudicado_total || 0);
+        const ganancia = Number(lic.ganancia_neta) || 0;
+        const colorGanancia = ganancia > 0 ? 'text-success' : (ganancia < 0 ? 'text-danger' : 'text-dark');
+        const estadoActual = lic.estado || 'Pendiente';
+
+        let estiloSelect = 'background-color: #fef3c7; color: #92400e; border: 2px solid #f59e0b; font-weight: 700;';
+        if (estadoActual === 'Adjudicado') {
+          estiloSelect = 'background-color: #dcfce7; color: #166534; border: 2px solid #22c55e; font-weight: 700;';
+        } else if (estadoActual === 'No Adjudicado') {
+          estiloSelect = 'background-color: #fee2e2; color: #991b1b; border: 2px solid #ef4444; font-weight: 700;';
+        }
+
+        tbody.innerHTML += `
+          <tr>
+            <td class="text-muted small">${fechaFormat}</td>
+            <td class="fw-bold text-primary">${lic.entidad || '--'}</td>
+            <td class="fw-bold text-dark">${lic.titulo || '--'}</td>
+            <td class="text-end fw-semibold" style="color: #92400e;">Bs ${Number(lic.costo_total || 0).toFixed(2)}</td>
+            <td class="text-end fw-bold" style="color: #15803d;">Bs ${Number(subTotal).toFixed(2)}</td>
+            <td class="text-end fw-bold ${colorGanancia}">Bs ${ganancia.toFixed(2)}</td>
+            <td class="text-center">
+              <select class="form-select form-select-sm text-center" style="${estiloSelect}" onchange="cambiarEstadoLicitacion('${lic.id}', this.value, this)">
+                <option value="Pendiente" ${estadoActual === 'Pendiente' ? 'selected' : ''}>⏳ Pendiente</option>
+                <option value="Adjudicado" ${estadoActual === 'Adjudicado' ? 'selected' : ''}>✅ Adjudicado</option>
+                <option value="No Adjudicado" ${estadoActual === 'No Adjudicado' ? 'selected' : ''}>❌ No Adjudicado</option>
+              </select>
+            </td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-outline-primary me-1" onclick="verEditarLicitacion('${lic.id}')" title="Ver / Editar Matriz"><i class="fa fa-edit"></i></button>
+              <button class="btn btn-sm btn-outline-danger" onclick="eliminarEvaluacionLicitacion('${lic.id}')" title="Eliminar"><i class="fa fa-trash"></i></button>
+            </td>
+          </tr>
+        `;
+      });
     };

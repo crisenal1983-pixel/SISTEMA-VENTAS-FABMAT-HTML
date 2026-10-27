@@ -69,7 +69,7 @@
         <button type="button" class="nav-link text-start border-0 bg-transparent w-100 py-2 px-3" style="flex-shrink: 0; font-size: 0.88rem;" onclick="ejecutarNavegacion('inventario', this)"><i class="fa fa-warehouse"></i> Inventario</button>
         <button type="button" class="nav-link text-start border-0 bg-transparent w-100 py-2 px-3" style="flex-shrink: 0; font-size: 0.88rem;" onclick="ejecutarNavegacion('ventas', this)"><i class="fa fa-cash-register"></i> Ventas</button>
         <button type="button" class="nav-link text-start border-0 bg-transparent w-100 py-2 px-3" style="flex-shrink: 0; font-size: 0.88rem;" onclick="ejecutarNavegacion('cotizaciones', this)"><i class="fa fa-file-signature"></i> Proformas</button>
-        <button type="button" class="nav-link text-start border-0 bg-transparent w-100 py-2 px-3" style="flex-shrink: 0; font-size: 0.88rem;" data-bs-dismiss="offcanvas" onclick="ejecutarNavegacion('licitaciones', this); prepararModalLicitacion();"><i class="fa fa-gavel"></i> Licitaciones</button>
+        <button type="button" class="nav-link text-start border-0 bg-transparent w-100 py-2 px-3" style="flex-shrink: 0; font-size: 0.88rem;" data-bs-dismiss="offcanvas" onclick="ejecutarNavegacion('licitaciones', this)"><i class="fa fa-gavel"></i> Licitaciones</button>
         <button type="button" class="nav-link text-start border-0 bg-transparent w-100 py-2 px-3" style="flex-shrink: 0; font-size: 0.88rem;" onclick="ejecutarNavegacion('combos', this)"><i class="fa fa-gift"></i> Combos</button>
         <button type="button" class="nav-link text-start border-0 bg-transparent w-100 py-2 px-3" style="flex-shrink: 0; font-size: 0.88rem;" onclick="ejecutarNavegacion('compras', this)"><i class="fa fa-shopping-cart"></i> Compras</button>
         <button type="button" class="nav-link text-start border-0 bg-transparent w-100 py-2 px-3" style="flex-shrink: 0; font-size: 0.88rem;" onclick="ejecutarNavegacion('clientes', this)"><i class="fa fa-users"></i> Clientes</button>
@@ -109,7 +109,7 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
           <div>
             <h4 class="fw-bold mb-0 text-dark"><i class="fa fa-gavel text-secondary"></i> Evaluador de Licitaciones</h4>
-            <p class="text-muted small mb-0">Simulador de subastas y análisis de rentabilidad</p>
+            <p class="text-muted small mb-0">Simulador de subastas, registro por entidad pública y análisis de rentabilidad</p>
           </div>
           <button class="btn btn-fabmat" data-bs-toggle="modal" data-bs-target="#modalLicitacionNuevo" onclick="prepararModalLicitacion();">
             <i class="fa fa-calculator"></i> Nueva Simulación
@@ -118,22 +118,131 @@
         
         <div class="card border-0 shadow-sm">
           <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0 text-sm">
               <thead class="table-light">
                 <tr>
                   <th>Fecha</th>
-                  <th>Producto Licitado</th>
-                  <th class="text-center">Cant.</th>
-                  <th class="text-end">Costo Total</th>
-                  <th class="text-end">Adjudicado</th>
-                  <th class="text-end">Ganancia Neta</th>
-                  <th class="text-center">Estado</th>
+                  <th>Entidad</th>
+                  <th>Título de Licitación</th>
+                  <th class="text-end">Monto Costo Total</th>
+                  <th class="text-end">Monto Subasta Total</th>
+                  <th class="text-end">Ganancia</th>
+                  <th class="text-center" style="width: 170px;">Estado</th>
+                  <th class="text-end">Acciones</th>
                 </tr>
               </thead>
               <tbody id="tabla-licitaciones-body">
-                <tr><td colspan="7" class="text-center text-muted py-4">Aún no hay evaluaciones guardadas</td></tr>
+                <tr><td colspan="8" class="text-center text-muted py-4">Aún no hay evaluaciones guardadas</td></tr>
               </tbody>
             </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODAL: SIMULADOR DE RENTABILIDAD (TIPO EXCEL) -->
+      <div class="modal fade" id="modalLicitacionNuevo" tabindex="-1">
+        <div class="modal-dialog" style="max-width: 96vw; width: 96vw; margin: 1.5vh auto;">
+          <div class="modal-content shadow-lg" style="resize: both; overflow: auto; min-width: 850px; min-height: 540px;">
+            <div class="modal-header bg-dark text-white">
+              <h5 class="modal-title fw-bold"><i class="fa fa-table me-2"></i> Matriz de Evaluación de Subastas</h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body bg-light">
+              <!-- Alerta interna visible dentro del modal -->
+              <div id="lic-modal-alert"></div>
+              <input type="hidden" id="lic-edit-id" value="">
+
+              <!-- Lista desplegable conectada a los productos de la Base de Datos -->
+              <datalist id="lic-datalist-productos"></datalist>
+
+              <div class="row g-2 mb-3 align-items-end">
+                <!-- 1. Opción previa para ingresar nueva Entidad Pública -->
+                <div class="col-md-3">
+                  <label class="form-label small fw-bold text-primary mb-1"><i class="fa fa-plus-circle"></i> Registrar Nueva Entidad Pública</label>
+                  <div class="input-group input-group-sm">
+                    <input type="text" class="form-control" id="lic-nueva-entidad" placeholder="Ej: HODE Materno Infantil...">
+                    <button class="btn btn-primary fw-bold" type="button" onclick="registrarEntidadPublica()">+ Agregar</button>
+                  </div>
+                </div>
+
+                <!-- 2. Casilla con menú de Entidades Públicas -->
+                <div class="col-md-3">
+                  <label class="form-label small fw-bold mb-1">Entidad Pública *</label>
+                  <select class="form-select form-select-sm fw-semibold" id="lic-entidad">
+                    <option value="">-- Seleccione Entidad --</option>
+                  </select>
+                </div>
+
+                <!-- 3. Título de la Licitación -->
+                <div class="col-md-4">
+                  <label class="form-label small fw-bold mb-1">Título de la Licitación *</label>
+                  <input type="text" class="form-control form-control-sm" id="lic-titulo" placeholder="Ej: Adquisición de Toners y Tintas...">
+                </div>
+
+                <!-- 4. IVA (%) -->
+                <div class="col-md-1">
+                  <label class="form-label small fw-bold text-danger mb-1">IVA (%) *</label>
+                  <input type="number" step="0.1" class="form-control form-control-sm fw-bold border-danger text-center" id="lic-iva-perc" value="3" oninput="recalcularTotalesLicitacion()">
+                </div>
+
+                <!-- 5. IT (%) -->
+                <div class="col-md-1">
+                  <label class="form-label small fw-bold text-muted mb-1">IT (%)</label>
+                  <input type="number" class="form-control form-control-sm bg-light text-center" value="3" readonly disabled tabindex="-1">
+                </div>
+              </div>
+              
+              <div class="table-responsive bg-white border shadow-sm" style="max-height: 58vh; overflow-y: auto;">
+                <table class="table table-bordered table-hover align-middle mb-0" style="font-size: 12px; width: 100%; min-width: 1250px;">
+                  <thead class="sticky-top text-center" style="z-index: 2;">
+                    <tr>
+                      <th style="width: 20%; min-width: 220px; background:#212529; color:#ffffff !important;">Descripción del Bien (Elegir o Editar)</th>
+                      <th style="width: 6%; min-width: 85px; background:#212529; color:#ffffff !important;">Cant.</th>
+                      <th style="width: 7%; background:#495057; color:#ffffff !important;">P.U. Proforma</th>
+                      <th style="width: 7%; background:#495057; color:#ffffff !important;">Tot. Proforma</th>
+                      <th style="width: 7%; background:#b45309; color:#ffffff !important;">P.U. Costo</th>
+                      <th style="width: 7%; background:#b45309; color:#ffffff !important;">Tot. Costo</th>
+                      <th style="width: 7%; background:#15803d; color:#ffffff !important;">P.U. Subasta</th>
+                      <th style="width: 7%; background:#15803d; color:#ffffff !important;">Tot. Subasta</th>
+                      <th style="width: 7%; background:#212529; color:#ffffff !important;">Diferencia</th>
+                      <th style="width: 5%; background:#212529; color:#ffffff !important;">IVA</th>
+                      <th style="width: 5%; background:#212529; color:#ffffff !important;">IT (3%)</th>
+                      <th style="width: 6%; background:#212529; color:#ffffff !important;">O. Gastos</th>
+                      <th style="width: 7%; background:#0d6efd; color:#ffffff !important; font-size: 13px;">⭐ GANANCIA</th>
+                      <th style="width: 2%; background:#212529; color:#ffffff !important;"></th>
+                    </tr>
+                  </thead>
+                  <tbody id="lic-items-body"></tbody>
+                  <tfoot class="table-light fw-bold sticky-bottom" style="z-index: 2; font-size: 13px;">
+                    <tr class="text-end">
+                      <td colspan="3" class="align-middle">TOTALES (Bs)</td>
+                      <td id="lic-tot-prof" class="text-dark bg-light align-middle">0.00</td>
+                      <td class="bg-light"></td>
+                      <td id="lic-tot-costo" class="align-middle" style="background-color: #fef3c7; color: #92400e;">0.00</td>
+                      <td class="bg-light"></td>
+                      <td id="lic-tot-sub" class="text-success align-middle" style="background-color: #dcfce7;">0.00</td>
+                      <td id="lic-tot-dif" class="text-primary bg-light align-middle">0.00</td>
+                      <td id="lic-tot-iva" class="text-danger bg-light align-middle">0.00</td>
+                      <td id="lic-tot-it" class="text-danger bg-light align-middle">0.00</td>
+                      <td id="lic-tot-og" class="bg-light align-middle">0.00</td>
+                      <td id="lic-tot-ganancia" class="fs-6 align-middle" style="background-color: #cfe2ff; color: #084298; border: 2px solid #0d6efd;">0.00</td>
+                      <td class="bg-light"></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-3">
+                <button class="btn btn-sm btn-secondary" type="button" onclick="agregarFilaLicitacion()"><i class="fa fa-plus"></i> Añadir Nueva Fila</button>
+                <small class="text-muted"><i class="fa fa-keyboard me-1"></i> Usa la tecla <b>Tab</b> para avanzar en orden por cada casilla</small>
+              </div>
+            </div>
+            <div class="modal-footer d-flex justify-content-between align-items-center">
+              <div id="lic-estado-general" class="fw-bold fs-5 text-muted">Rentabilidad General: 0.00%</div>
+              <div>
+                <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-fabmat fw-bold px-4" onclick="guardarLicitacion()"><i class="fa fa-save me-1"></i> Guardar Evaluación</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
