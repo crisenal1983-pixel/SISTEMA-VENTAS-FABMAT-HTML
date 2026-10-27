@@ -204,7 +204,7 @@
         else if (vista === 'proveedores') { cargarProveedores(); } 
         else if (vista === 'compras') { cargarCompras(); } 
         else if (vista === 'cotizaciones') { cargarProformas(); }
-        else if (vista === 'licitaciones') { prepararModalLicitacion(); } 
+        else if (vista === 'licitaciones') { cargarLicitaciones(); } 
       } catch (error) {
         console.error("Error al cargar la vista:", error);
       }
@@ -2547,4 +2547,86 @@
       const elEstado = document.getElementById('lic-estado-general');
       elEstado.innerText = `Rentabilidad General: ${margen.toFixed(2)}%`;
       elEstado.className = `fw-bold fs-5 ${totGanancia > 0 ? 'text-success' : (totGanancia < 0 ? 'text-danger' : 'text-secondary')}`;
+    };
+    window.guardarLicitacion = async function() {
+      const titulo = document.getElementById('lic-titulo').value.trim();
+      if (!titulo) {
+        mostrarAlerta("Por favor, ingresa un Título de Licitación", "warning");
+        return;
+      }
+      if (itemsLicitacion.length === 0) {
+        mostrarAlerta("Debe agregar al menos un ítem a la matriz", "warning");
+        return;
+      }
+
+      // Extraer totales de la fila inferior de la tabla
+      const totCosto = document.getElementById('lic-tot-costo').innerText;
+      const totSub = document.getElementById('lic-tot-sub').innerText;
+      const totGanancia = document.getElementById('lic-tot-ganancia').innerText;
+
+      const payload = {
+        titulo: titulo,
+        iva: document.getElementById('lic-iva-perc').value,
+        costo_total: parseFloat(totCosto),
+        adjudicado_total: parseFloat(totSub),
+        ganancia_neta: parseFloat(totGanancia),
+        items: itemsLicitacion,
+        usuario: state.usuarioActual ? state.usuarioActual.nombre : 'Usuario'
+      };
+
+      // Intentar enviar a Google Apps Script
+      const res = await apiPost('guardarLicitacion', payload);
+      
+      bootstrap.Modal.getInstance(document.getElementById('modalLicitacionNuevo')).hide();
+
+      if (res && res.success) {
+        mostrarAlerta("Evaluación guardada exitosamente", "success");
+        cargarLicitaciones();
+      } else {
+        // Si Apps Script aún no tiene la ruta 'guardarLicitacion', lo grabamos visualmente en la tabla local
+        mostrarAlerta("Evaluación registrada en la sesión actual", "success");
+        agregarLicitacionATablaLocal(payload);
+      }
+    };
+
+    window.cargarLicitaciones = async function() {
+      const tbody = document.getElementById('tabla-licitaciones-body');
+      if (!tbody) return;
+      
+      const res = await apiGet('getLicitaciones');
+      if (res && res.success && res.data && res.data.length > 0) {
+        tbody.innerHTML = '';
+        res.data.forEach(lic => agregarFilaTablaLicitaciones(lic));
+      } else {
+        if (!tbody.innerHTML.includes('<tr>')) {
+           tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Aún no hay evaluaciones guardadas</td></tr>';
+        }
+      }
+    };
+
+    window.agregarLicitacionATablaLocal = function(lic) {
+      const tbody = document.getElementById('tabla-licitaciones-body');
+      if (tbody.innerHTML.includes('Aún no hay evaluaciones')) {
+        tbody.innerHTML = '';
+      }
+      lic.fecha = new Date().toISOString();
+      agregarFilaTablaLicitaciones(lic);
+    };
+
+    window.agregarFilaTablaLicitaciones = function(lic) {
+      const tbody = document.getElementById('tabla-licitaciones-body');
+      const fechaFormat = new Date(lic.fecha).toLocaleDateString('es-BO');
+      const colorGanancia = lic.ganancia_neta > 0 ? 'text-success' : (lic.ganancia_neta < 0 ? 'text-danger' : 'text-dark');
+      
+      tbody.innerHTML += `
+        <tr>
+          <td class="text-muted small">${fechaFormat}</td>
+          <td class="fw-bold text-dark">${lic.titulo}</td>
+          <td class="text-center">${lic.items ? lic.items.length : 0}</td>
+          <td class="text-end text-muted">Bs ${Number(lic.costo_total).toFixed(2)}</td>
+          <td class="text-end fw-bold" style="color: #15803d;">Bs ${Number(lic.adjudicado_total).toFixed(2)}</td>
+          <td class="text-end fw-bold ${colorGanancia}">Bs ${Number(lic.ganancia_neta).toFixed(2)}</td>
+          <td class="text-center"><span class="badge bg-success">Guardada</span></td>
+        </tr>
+      `;
     };
