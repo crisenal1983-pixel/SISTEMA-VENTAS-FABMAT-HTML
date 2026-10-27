@@ -1734,7 +1734,6 @@
       document.getElementById('combo-estado').checked = (combo.estado === 'Activo');
       document.getElementById('combo-buscar-prod').value = '';
 
-      // Cargar productos del combo si existen
       let itemsGuardados = combo.items || [];
       if (typeof itemsGuardados === 'string') {
         try { itemsGuardados = JSON.parse(itemsGuardados); } catch (e) { itemsGuardados = []; }
@@ -1742,23 +1741,23 @@
       carritoCombo = Array.isArray(itemsGuardados) ? JSON.parse(JSON.stringify(itemsGuardados)) : [];
 
       renderizarCatalogoCombo();
+      actualizarTicketCombo(false); // Renderiza la tabla sin sobreescribir el precio redondeado
 
-      // Calcular total normal y porcentaje de descuento actual
-      const totalNormal = carritoCombo.reduce((acc, item) => acc + (Number(item.cantidad) * Number(item.precio_unitario)), 0);
+      const totalNormal = parseFloat(document.getElementById('combo-total-normal').innerText) || 0;
       const precioActualBob = Number(combo.precio_venta_bob) || 0;
-      const precioActualUsd = Number(combo.precio_venta_usd) || (precioActualBob / state.tasaCambio);
+      const precioActualUsd = precioActualBob / (state.tasaCambio || 10.50);
+
+      // Colocar el precio exacto guardado (incluyendo redondeos manuales)
+      document.getElementById('combo-precio-bob').value = precioActualBob.toFixed(2);
+      const elDisplay = document.getElementById('combo-precio-bob-display');
+      if (elDisplay) elDisplay.innerText = precioActualBob.toFixed(2);
+      document.getElementById('combo-precio-usd').value = precioActualUsd.toFixed(2);
 
       if (totalNormal > 0) {
         const descCalculado = ((totalNormal - precioActualBob) / totalNormal) * 100;
-        document.getElementById('combo-descuento-perc').value = Math.max(0, descCalculado).toFixed(1);
-        actualizarTicketCombo();
+        document.getElementById('combo-descuento-perc').value = Math.max(0, descCalculado).toFixed(2);
       } else {
         document.getElementById('combo-descuento-perc').value = combo.descuento_perc || '0';
-        actualizarTicketCombo();
-        // Mantener visible el precio guardado aunque aún no se hayan vuelto a seleccionar ítems
-        document.getElementById('combo-precio-bob-display').innerText = precioActualBob.toFixed(2);
-        document.getElementById('combo-precio-bob').value = precioActualBob.toFixed(2);
-        document.getElementById('combo-precio-usd').value = precioActualUsd.toFixed(2);
       }
 
       bootstrap.Modal.getOrCreateInstance(document.getElementById('modalCombo')).show();
@@ -1774,7 +1773,6 @@
       delete cache.editados[String(codigoCombo)];
       guardarCombosCacheLocal(cache);
 
-      // Intentar eliminar también en Apps Script si existe el endpoint
       try {
         await apiPost('eliminarCombo', { codigo_combo: codigoCombo });
       } catch (e) {}
@@ -1822,17 +1820,17 @@
       } else {
         carritoCombo.push({ sku: prod.codigo_sku, nombre: prod.nombre, cantidad: 1, precio_unitario: Number(prod.precio_venta_bob) });
       }
-      actualizarTicketCombo();
+      actualizarTicketCombo(true);
     }
 
     function actualizarCantCombo(index, val) {
       let cant = Number(val);
       if (cant <= 0) cant = 1;
       carritoCombo[index].cantidad = cant;
-      actualizarTicketCombo();
+      actualizarTicketCombo(true);
     }
 
-    function actualizarTicketCombo() {
+    function actualizarTicketCombo(recalcularPrecio = true) {
       const tbody = document.getElementById('combo-cart-body');
       tbody.innerHTML = '';
       let totalNormal = 0;
@@ -1846,35 +1844,62 @@
             <td><input type="number" class="form-control form-control-sm text-center px-1" value="${item.cantidad}" onchange="actualizarCantCombo(${index}, this.value)"></td>
             <td class="small text-muted">Bs ${Number(item.precio_unitario).toFixed(2)}</td>
             <td class="small fw-bold">Bs ${subtotal.toFixed(2)}</td>
-            <td><button class="btn btn-sm text-danger p-0 m-0" onclick="carritoCombo.splice(${index}, 1); actualizarTicketCombo();"><i class="fa fa-times-circle fs-6"></i></button></td>
+            <td><button class="btn btn-sm text-danger p-0 m-0" onclick="carritoCombo.splice(${index}, 1); actualizarTicketCombo(true);"><i class="fa fa-times-circle fs-6"></i></button></td>
           </tr>
         `;
       });
       
       document.getElementById('combo-total-normal').innerText = totalNormal.toFixed(2);
-      calcularDescuentoCombo(totalNormal);
+      if (recalcularPrecio) {
+        calcularDescuentoCombo(totalNormal);
+      }
     }
 
     function calcularDescuentoCombo(totalNormal = null) {
       if (totalNormal === null) {
-         totalNormal = parseFloat(document.getElementById('combo-total-normal').innerText) || 0;
+        totalNormal = parseFloat(document.getElementById('combo-total-normal').innerText) || 0;
       }
       const perc = parseFloat(document.getElementById('combo-descuento-perc').value) || 0;
       const descuento = totalNormal * (perc / 100);
-      const totalConDescuento = totalNormal - descuento;
+      const totalConDescuento = Math.max(0, totalNormal - descuento);
+      const precioUsd = totalConDescuento / (state.tasaCambio || 10.50);
       
-      const precioUsd = totalConDescuento / state.tasaCambio;
-      
-      document.getElementById('combo-precio-bob-display').innerText = totalConDescuento.toFixed(2);
+      const elDisplay = document.getElementById('combo-precio-bob-display');
+      if (elDisplay) elDisplay.innerText = totalConDescuento.toFixed(2);
       document.getElementById('combo-precio-bob').value = totalConDescuento.toFixed(2);
       document.getElementById('combo-precio-usd').value = precioUsd.toFixed(2);
     }
 
+    // Se ejecuta cuando el usuario escribe o modifica directamente el Precio Especial en Bs
+    window.actualizarPrecioEspecialComboManual = function() {
+      const totalNormal = parseFloat(document.getElementById('combo-total-normal').innerText) || 0;
+      const precioBob = parseFloat(document.getElementById('combo-precio-bob').value) || 0;
+      const precioUsd = precioBob / (state.tasaCambio || 10.50);
+
+      const elDisplay = document.getElementById('combo-precio-bob-display');
+      if (elDisplay) elDisplay.innerText = precioBob.toFixed(2);
+      document.getElementById('combo-precio-usd').value = precioUsd.toFixed(2);
+
+      if (totalNormal > 0) {
+        const descPerc = ((totalNormal - precioBob) / totalNormal) * 100;
+        document.getElementById('combo-descuento-perc').value = Math.max(0, descPerc).toFixed(2);
+      }
+    };
+
+    // Botón para redondear el Precio Especial al entero en Bolivianos más cercano
+    window.redondearPrecioCombo = function() {
+      const inputBob = document.getElementById('combo-precio-bob');
+      const valorActual = parseFloat(inputBob.value) || 0;
+      const valorRedondeado = Math.round(valorActual);
+      inputBob.value = valorRedondeado.toFixed(2);
+      actualizarPrecioEspecialComboManual();
+    };
+
     async function guardarCombo() {
       const nombre = document.getElementById('combo-nombre').value.trim();
       const descripcion = document.getElementById('combo-desc').value.trim();
-      const precioUsd = parseFloat(document.getElementById('combo-precio-usd').value) || 0;
       const precioBob = parseFloat(document.getElementById('combo-precio-bob').value) || 0;
+      const precioUsd = parseFloat((precioBob / (state.tasaCambio || 10.50)).toFixed(2));
       const estado = document.getElementById('combo-estado').checked ? 'Activo' : 'Inactivo';
       const descuentoPerc = parseFloat(document.getElementById('combo-descuento-perc').value) || 0;
       
@@ -1907,7 +1932,6 @@
         };
         guardarCombosCacheLocal(cache);
 
-        // Intentar actualizar también en el backend si la acción existe
         try {
           await apiPost('actualizarCombo', payload);
         } catch (e) {}
@@ -1915,14 +1939,13 @@
         bootstrap.Modal.getInstance(document.getElementById('modalCombo')).hide();
         comboEditandoCodigo = null;
         await cargarCombos();
-        mostrarAlerta("Combo actualizado exitosamente", "success");
+        mostrarAlerta(`Combo actualizado con precio Bs. ${precioBob.toFixed(2)}`, "success");
         return;
       }
 
       // MODO CREACIÓN DE NUEVO COMBO
       const res = await apiPost('guardarCombo', payload);
       if (res.success) {
-        // Guardar los ítems del nuevo combo en caché local para futuras ediciones
         const rCombos = await apiGet('getCombos');
         if (rCombos.success && rCombos.data.length > 0) {
           const ultimoCombo = rCombos.data[rCombos.data.length - 1];

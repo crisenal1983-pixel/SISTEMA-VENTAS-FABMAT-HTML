@@ -1634,13 +1634,22 @@
                   </div>
                   <div class="mb-2 mt-3">
                     <label class="form-label small fw-bold text-dark">Descuento aplicado (%) *</label>
-                    <input type="number" step="0.1" min="0" max="100" class="form-control" id="combo-descuento-perc" value="0" oninput="calcularDescuentoCombo()">
+                    <input type="number" step="0.01" min="0" max="100" class="form-control" id="combo-descuento-perc" value="0" oninput="calcularDescuentoCombo()">
                   </div>
-                  <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
-                    <span class="small fw-bold">Precio especial del combo (Bs) *</span>
-                    <h4 class="fw-bold text-danger mb-0">Bs <span id="combo-precio-bob-display">0.00</span></h4>
-                    <input type="hidden" id="combo-precio-bob">
-                    <input type="hidden" id="combo-precio-usd">
+                  <div class="mt-3 pt-2 border-top">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                      <label class="small fw-bold text-dark mb-0">Precio especial del combo (Bs) *</label>
+                      <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 fw-bold" onclick="redondearPrecioCombo()" title="Redondear al entero más cercano">
+                        <i class="fa fa-magic me-1"></i> Redondear Bs
+                      </button>
+                    </div>
+                    <div class="input-group">
+                      <span class="input-group-text bg-light text-danger fw-bold">Bs</span>
+                      <input type="number" step="0.01" min="0" class="form-control fw-bold text-danger fs-5 text-end" id="combo-precio-bob" value="0.00" oninput="actualizarPrecioEspecialComboManual()">
+                    </div>
+                    <div class="form-text text-end">Puedes usar el botón <b>Redondear Bs</b> o escribir el monto exacto.</div>
+                    <span id="combo-precio-bob-display" class="d-none">0.00</span>
+                    <input type="hidden" id="combo-precio-usd" value="0.00">
                   </div>
                 </div>
 
