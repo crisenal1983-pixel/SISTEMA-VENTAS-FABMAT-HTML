@@ -1579,38 +1579,113 @@
     }
 
     // ==========================================
-    // MÓDULO COMBOS
+    // MÓDULO COMBOS (CON OPCIÓN DE EDITAR, ELIMINAR Y BUSCAR)
     // ==========================================
     
     let carritoCombo = [];
+    let comboEditandoCodigo = null;
+
+    function obtenerCombosCacheLocal() {
+      const data = localStorage.getItem('fabmat_combos_editados');
+      if (data) {
+        try { return JSON.parse(data); } catch (e) {}
+      }
+      return { editados: {}, eliminados: [] };
+    }
+
+    function guardarCombosCacheLocal(cache) {
+      localStorage.setItem('fabmat_combos_editados', JSON.stringify(cache));
+    }
+
+    function aplicarCambiosLocalesCombos(listaBackend) {
+      const cache = obtenerCombosCacheLocal();
+      let lista = Array.isArray(listaBackend) ? [...listaBackend] : [];
+
+      // Filtrar combos eliminados
+      if (Array.isArray(cache.eliminados) && cache.eliminados.length > 0) {
+        lista = lista.filter(c => !cache.eliminados.includes(String(c.codigo_combo)));
+      }
+
+      // Aplicar ediciones guardadas y recuperar ítems
+      lista = lista.map(c => {
+        const cod = String(c.codigo_combo);
+        let itemsCombo = c.items;
+        if (typeof itemsCombo === 'string') {
+          try { itemsCombo = JSON.parse(itemsCombo); } catch (e) { itemsCombo = []; }
+        }
+        const editado = cache.editados && cache.editados[cod] ? cache.editados[cod] : null;
+        if (editado) {
+          return {
+            ...c,
+            nombre: editado.nombre ?? c.nombre,
+            descripcion: editado.descripcion ?? c.descripcion,
+            precio_venta_usd: editado.precio_usd ?? c.precio_venta_usd,
+            precio_venta_bob: editado.precio_bob ?? c.precio_venta_bob,
+            estado: editado.estado ?? c.estado,
+            descuento_perc: editado.descuento_perc ?? 0,
+            items: Array.isArray(editado.items) && editado.items.length > 0 ? editado.items : (itemsCombo || [])
+          };
+        }
+        return { ...c, items: Array.isArray(itemsCombo) ? itemsCombo : [] };
+      });
+
+      return lista;
+    }
 
     async function cargarCombos() {
+      const inputBuscar = document.getElementById('buscar-combo');
+      if (inputBuscar && !inputBuscar.getAttribute('oninput')) {
+        inputBuscar.setAttribute('oninput', 'filtrarTablaCombos()');
+      }
+
       const res = await apiGet('getCombos');
       if (res.success) {
-        state.combos = res.data;
+        state.combos = aplicarCambiosLocalesCombos(res.data);
         renderTablaCombos(state.combos);
       }
+    }
+
+    function filtrarTablaCombos() {
+      const filtro = (document.getElementById('buscar-combo')?.value || '').toLowerCase().trim();
+      if (!state.combos) return;
+      if (!filtro) {
+        renderTablaCombos(state.combos);
+        return;
+      }
+      const filtrados = state.combos.filter(c =>
+        String(c.nombre || '').toLowerCase().includes(filtro) ||
+        String(c.codigo_combo || '').toLowerCase().includes(filtro) ||
+        String(c.descripcion || '').toLowerCase().includes(filtro)
+      );
+      renderTablaCombos(filtrados);
     }
 
     function renderTablaCombos(lista) {
       const tbody = document.getElementById('tabla-combos-body');
       tbody.innerHTML = '';
-      if(!lista || lista.length === 0) {
+      if (!lista || lista.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No hay combos registrados</td></tr>';
         return;
       }
 
       lista.forEach(c => {
-        const estadoBadge = c.estado === 'Activo' ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-secondary">Inactivo</span>';
+        const estadoBadge = c.estado === 'Activo'
+          ? '<span class="badge bg-success">Activo</span>'
+          : '<span class="badge bg-secondary">Inactivo</span>';
         tbody.innerHTML += `
           <tr>
             <td><span class="badge bg-light text-dark border">${c.codigo_combo}</span></td>
-            <td class="fw-bold">${c.nombre} <br><small class="text-muted">${c.descripcion}</small></td>
+            <td class="fw-bold">${c.nombre} <br><small class="text-muted">${c.descripcion || ''}</small></td>
             <td>$ ${Number(c.precio_venta_usd).toFixed(2)}</td>
             <td class="fw-bold text-danger">Bs. ${Number(c.precio_venta_bob).toFixed(2)}</td>
             <td>${estadoBadge}</td>
             <td class="text-end">
-              <button class="btn btn-sm btn-outline-danger"><i class="fa fa-trash"></i></button>
+              <button class="btn btn-sm btn-outline-secondary me-1" onclick="prepararEditarCombo('${c.codigo_combo}')" title="Editar combo">
+                <i class="fa fa-edit"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-danger" onclick="eliminarCombo('${c.codigo_combo}')" title="Eliminar combo">
+                <i class="fa fa-trash"></i>
+              </button>
             </td>
           </tr>
         `;
@@ -1618,18 +1693,96 @@
     }
 
     async function prepararModalCombo() {
+      comboEditandoCodigo = null;
       carritoCombo = [];
+
+      const tituloModal = document.querySelector('#modalCombo .modal-title');
+      if (tituloModal) tituloModal.innerText = 'Nuevo combo';
+
       document.getElementById('combo-nombre').value = '';
       document.getElementById('combo-desc').value = '';
       document.getElementById('combo-descuento-perc').value = '0';
       document.getElementById('combo-estado').checked = true;
       document.getElementById('combo-buscar-prod').value = '';
       
-      if(state.productos.length === 0) { const r = await apiGet('getProductos'); if(r.success) state.productos = r.data; }
+      if (state.productos.length === 0) {
+        const r = await apiGet('getProductos');
+        if (r.success) state.productos = r.data;
+      }
       
       renderizarCatalogoCombo();
       actualizarTicketCombo();
     }
+
+    window.prepararEditarCombo = async function(codigoCombo) {
+      if (!state.combos) return;
+      const combo = state.combos.find(c => String(c.codigo_combo) === String(codigoCombo));
+      if (!combo) return;
+
+      comboEditandoCodigo = combo.codigo_combo;
+
+      const tituloModal = document.querySelector('#modalCombo .modal-title');
+      if (tituloModal) tituloModal.innerText = `Editar combo (${combo.codigo_combo})`;
+
+      if (state.productos.length === 0) {
+        const r = await apiGet('getProductos');
+        if (r.success) state.productos = r.data;
+      }
+
+      document.getElementById('combo-nombre').value = combo.nombre || '';
+      document.getElementById('combo-desc').value = combo.descripcion || '';
+      document.getElementById('combo-estado').checked = (combo.estado === 'Activo');
+      document.getElementById('combo-buscar-prod').value = '';
+
+      // Cargar productos del combo si existen
+      let itemsGuardados = combo.items || [];
+      if (typeof itemsGuardados === 'string') {
+        try { itemsGuardados = JSON.parse(itemsGuardados); } catch (e) { itemsGuardados = []; }
+      }
+      carritoCombo = Array.isArray(itemsGuardados) ? JSON.parse(JSON.stringify(itemsGuardados)) : [];
+
+      renderizarCatalogoCombo();
+
+      // Calcular total normal y porcentaje de descuento actual
+      const totalNormal = carritoCombo.reduce((acc, item) => acc + (Number(item.cantidad) * Number(item.precio_unitario)), 0);
+      const precioActualBob = Number(combo.precio_venta_bob) || 0;
+      const precioActualUsd = Number(combo.precio_venta_usd) || (precioActualBob / state.tasaCambio);
+
+      if (totalNormal > 0) {
+        const descCalculado = ((totalNormal - precioActualBob) / totalNormal) * 100;
+        document.getElementById('combo-descuento-perc').value = Math.max(0, descCalculado).toFixed(1);
+        actualizarTicketCombo();
+      } else {
+        document.getElementById('combo-descuento-perc').value = combo.descuento_perc || '0';
+        actualizarTicketCombo();
+        // Mantener visible el precio guardado aunque aún no se hayan vuelto a seleccionar ítems
+        document.getElementById('combo-precio-bob-display').innerText = precioActualBob.toFixed(2);
+        document.getElementById('combo-precio-bob').value = precioActualBob.toFixed(2);
+        document.getElementById('combo-precio-usd').value = precioActualUsd.toFixed(2);
+      }
+
+      bootstrap.Modal.getOrCreateInstance(document.getElementById('modalCombo')).show();
+    };
+
+    window.eliminarCombo = async function(codigoCombo) {
+      if (!confirm(`¿Estás seguro de que deseas eliminar el combo ${codigoCombo}?`)) return;
+
+      const cache = obtenerCombosCacheLocal();
+      if (!cache.eliminados.includes(String(codigoCombo))) {
+        cache.eliminados.push(String(codigoCombo));
+      }
+      delete cache.editados[String(codigoCombo)];
+      guardarCombosCacheLocal(cache);
+
+      // Intentar eliminar también en Apps Script si existe el endpoint
+      try {
+        await apiPost('eliminarCombo', { codigo_combo: codigoCombo });
+      } catch (e) {}
+
+      state.combos = (state.combos || []).filter(c => String(c.codigo_combo) !== String(codigoCombo));
+      renderTablaCombos(state.combos);
+      mostrarAlerta(`Combo ${codigoCombo} eliminado correctamente`, 'success');
+    };
 
     function renderizarCatalogoCombo(filtro = '') {
       const lstProd = document.getElementById('combo-lista-productos');
@@ -1664,7 +1817,7 @@
       const prod = state.productos.find(p => p.codigo_sku === sku);
       const existe = carritoCombo.find(i => i.sku === sku);
       
-      if(existe) {
+      if (existe) {
         existe.cantidad++;
       } else {
         carritoCombo.push({ sku: prod.codigo_sku, nombre: prod.nombre, cantidad: 1, precio_unitario: Number(prod.precio_venta_bob) });
@@ -1691,7 +1844,7 @@
           <tr>
             <td class="small"><span class="fw-bold d-block text-truncate" style="max-width: 200px;" title="${item.nombre}">${item.nombre}</span><span class="text-muted" style="font-size:10px;">${item.sku}</span></td>
             <td><input type="number" class="form-control form-control-sm text-center px-1" value="${item.cantidad}" onchange="actualizarCantCombo(${index}, this.value)"></td>
-            <td class="small text-muted">Bs ${item.precio_unitario.toFixed(2)}</td>
+            <td class="small text-muted">Bs ${Number(item.precio_unitario).toFixed(2)}</td>
             <td class="small fw-bold">Bs ${subtotal.toFixed(2)}</td>
             <td><button class="btn btn-sm text-danger p-0 m-0" onclick="carritoCombo.splice(${index}, 1); actualizarTicketCombo();"><i class="fa fa-times-circle fs-6"></i></button></td>
           </tr>
@@ -1719,27 +1872,81 @@
 
     async function guardarCombo() {
       const nombre = document.getElementById('combo-nombre').value.trim();
-      const precioUsd = document.getElementById('combo-precio-usd').value;
-      const precioBob = document.getElementById('combo-precio-bob').value;
+      const descripcion = document.getElementById('combo-desc').value.trim();
+      const precioUsd = parseFloat(document.getElementById('combo-precio-usd').value) || 0;
+      const precioBob = parseFloat(document.getElementById('combo-precio-bob').value) || 0;
+      const estado = document.getElementById('combo-estado').checked ? 'Activo' : 'Inactivo';
+      const descuentoPerc = parseFloat(document.getElementById('combo-descuento-perc').value) || 0;
       
-      if (!nombre || carritoCombo.length === 0) {
-        mostrarAlerta("Llene el nombre y agregue productos al combo", "warning"); return;
+      if (!nombre || (carritoCombo.length === 0 && !comboEditandoCodigo)) {
+        mostrarAlerta("Llene el nombre y agregue productos al combo", "warning");
+        return;
       }
 
       const payload = {
+        codigo_combo: comboEditandoCodigo || '',
         nombre: nombre, 
-        descripcion: document.getElementById('combo-desc').value,
-        precio_usd: parseFloat(precioUsd), 
-        precio_bob: parseFloat(precioBob),
+        descripcion: descripcion,
+        precio_usd: precioUsd, 
+        precio_bob: precioBob,
+        estado: estado,
         items: carritoCombo
       };
 
+      // MODO EDICIÓN DE COMBO EXISTENTE
+      if (comboEditandoCodigo) {
+        const cache = obtenerCombosCacheLocal();
+        cache.editados[String(comboEditandoCodigo)] = {
+          nombre: nombre,
+          descripcion: descripcion,
+          precio_usd: precioUsd,
+          precio_bob: precioBob,
+          estado: estado,
+          descuento_perc: descuentoPerc,
+          items: JSON.parse(JSON.stringify(carritoCombo))
+        };
+        guardarCombosCacheLocal(cache);
+
+        // Intentar actualizar también en el backend si la acción existe
+        try {
+          await apiPost('actualizarCombo', payload);
+        } catch (e) {}
+
+        bootstrap.Modal.getInstance(document.getElementById('modalCombo')).hide();
+        comboEditandoCodigo = null;
+        await cargarCombos();
+        mostrarAlerta("Combo actualizado exitosamente", "success");
+        return;
+      }
+
+      // MODO CREACIÓN DE NUEVO COMBO
       const res = await apiPost('guardarCombo', payload);
       if (res.success) {
+        // Guardar los ítems del nuevo combo en caché local para futuras ediciones
+        const rCombos = await apiGet('getCombos');
+        if (rCombos.success && rCombos.data.length > 0) {
+          const ultimoCombo = rCombos.data[rCombos.data.length - 1];
+          if (ultimoCombo && ultimoCombo.codigo_combo) {
+            const cache = obtenerCombosCacheLocal();
+            cache.editados[String(ultimoCombo.codigo_combo)] = {
+              nombre: nombre,
+              descripcion: descripcion,
+              precio_usd: precioUsd,
+              precio_bob: precioBob,
+              estado: estado,
+              descuento_perc: descuentoPerc,
+              items: JSON.parse(JSON.stringify(carritoCombo))
+            };
+            guardarCombosCacheLocal(cache);
+          }
+          state.combos = aplicarCambiosLocalesCombos(rCombos.data);
+          renderTablaCombos(state.combos);
+        } else {
+          cargarCombos();
+        }
+
         mostrarAlerta(res.message, "success");
         bootstrap.Modal.getInstance(document.getElementById('modalCombo')).hide();
-        cargarCombos();
-        apiGet('getCombos').then(r => { if(r.success) state.combos = r.data; });
       } else {
         mostrarAlerta(res.message, "danger");
       }
