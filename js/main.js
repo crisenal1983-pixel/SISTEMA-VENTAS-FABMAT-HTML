@@ -660,11 +660,31 @@
       actualizarTicketPOS();
     }
 
-    function renderizarCatalogoPOS() {
+    function filtrarCatalogoPOS() {
+      const filtro = (document.getElementById('pos-buscar')?.value || '').trim();
+      renderizarCatalogoPOS(filtro);
+    }
+
+    function renderizarCatalogoPOS(filtro = '') {
+      const f = filtro.toLowerCase();
+
       const lstProd = document.getElementById('pos-lista-productos');
       lstProd.innerHTML = '';
-      state.productos.forEach(p => {
-        if(p.estado === 'Activo') {
+
+      const prodsFiltrados = (state.productos || []).filter(p => {
+        if (p.estado !== 'Activo') return false;
+        if (!f) return true;
+        return (
+          String(p.nombre || '').toLowerCase().includes(f) ||
+          String(p.codigo_sku || '').toLowerCase().includes(f) ||
+          String(p.categoria || '').toLowerCase().includes(f)
+        );
+      });
+
+      if (prodsFiltrados.length === 0) {
+        lstProd.innerHTML = '<div class="text-center text-muted small py-3">No hay productos que coincidan con la búsqueda</div>';
+      } else {
+        prodsFiltrados.forEach(p => {
           lstProd.innerHTML += `
             <div class="item-row d-flex justify-content-between align-items-center">
               <div style="width: 50%;">
@@ -676,14 +696,26 @@
               <button class="btn btn-sm btn-danger rounded-circle" onclick="agregarItemPOS('producto', '${p.codigo_sku}')" ${p.stock_actual <= 0 ? 'disabled' : ''}><i class="fa fa-plus"></i></button>
             </div>
           `;
-        }
-      });
+        });
+      }
 
       const lstCombo = document.getElementById('pos-lista-combos');
       lstCombo.innerHTML = '';
-      if(state.combos) {
-        state.combos.forEach(c => {
-          if(c.estado === 'Activo') {
+      if (state.combos) {
+        const combosFiltrados = state.combos.filter(c => {
+          if (c.estado !== 'Activo') return false;
+          if (!f) return true;
+          return (
+            String(c.nombre || '').toLowerCase().includes(f) ||
+            String(c.codigo_combo || '').toLowerCase().includes(f) ||
+            String(c.descripcion || '').toLowerCase().includes(f)
+          );
+        });
+
+        if (combosFiltrados.length === 0) {
+          lstCombo.innerHTML = '<div class="text-center text-muted small py-3">No hay combos que coincidan con la búsqueda</div>';
+        } else {
+          combosFiltrados.forEach(c => {
             lstCombo.innerHTML += `
               <div class="item-row d-flex justify-content-between align-items-center">
                 <div style="width: 60%;">
@@ -694,8 +726,8 @@
                 <button class="btn btn-sm btn-danger rounded-circle" onclick="agregarItemPOS('combo', '${c.codigo_combo}')"><i class="fa fa-plus"></i></button>
               </div>
             `;
-          }
-        });
+          });
+        }
       }
     }
 
