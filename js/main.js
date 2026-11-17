@@ -280,31 +280,36 @@
     }
 
     function calcularPrecios(tipo, monedaOrigen = 'usd') {
+      // Filtro de seguridad anti-NaN y anti-comas
+      const pNum = (val) => { let n = parseFloat(String(val).replace(',', '.')); return isNaN(n) ? 0 : n; };
+      const tc = pNum(state.tasaCambio) || 10.50;
+
       if (tipo === 'compra') {
         if (monedaOrigen === 'usd') {
-          const usd = parseFloat(document.getElementById('prod-compra-usd').value) || 0;
-          document.getElementById('prod-compra-bob').value = (usd * state.tasaCambio).toFixed(2);
+          const usd = pNum(document.getElementById('prod-compra-usd').value);
+          document.getElementById('prod-compra-bob').value = (usd * tc).toFixed(2);
         } else {
-          const bob = parseFloat(document.getElementById('prod-compra-bob').value) || 0;
-          document.getElementById('prod-compra-usd').value = (bob / state.tasaCambio).toFixed(2);
+          const bob = pNum(document.getElementById('prod-compra-bob').value);
+          document.getElementById('prod-compra-usd').value = (bob / tc).toFixed(2);
         }
       } else if (tipo === 'venta') {
         if (monedaOrigen === 'usd') {
-          const usd = parseFloat(document.getElementById('prod-venta-usd').value) || 0;
-          document.getElementById('prod-venta-bob').value = (usd * state.tasaCambio).toFixed(2);
+          const usd = pNum(document.getElementById('prod-venta-usd').value);
+          document.getElementById('prod-venta-bob').value = (usd * tc).toFixed(2);
         } else {
-          const bob = parseFloat(document.getElementById('prod-venta-bob').value) || 0;
-          document.getElementById('prod-venta-usd').value = (bob / state.tasaCambio).toFixed(2);
+          const bob = pNum(document.getElementById('prod-venta-bob').value);
+          document.getElementById('prod-venta-usd').value = (bob / tc).toFixed(2);
         }
       }
       calcularGananciaProducto();
     }
 
     function calcularGananciaProducto() {
-      const compraUsd = parseFloat(document.getElementById('prod-compra-usd')?.value) || 0;
-      const compraBob = parseFloat(document.getElementById('prod-compra-bob')?.value) || 0;
-      const ventaUsd = parseFloat(document.getElementById('prod-venta-usd')?.value) || 0;
-      const ventaBob = parseFloat(document.getElementById('prod-venta-bob')?.value) || 0;
+      const pNum = (val) => { let n = parseFloat(String(val).replace(',', '.')); return isNaN(n) ? 0 : n; };
+      const compraUsd = pNum(document.getElementById('prod-compra-usd')?.value);
+      const compraBob = pNum(document.getElementById('prod-compra-bob')?.value);
+      const ventaUsd = pNum(document.getElementById('prod-venta-usd')?.value);
+      const ventaBob = pNum(document.getElementById('prod-venta-bob')?.value);
 
       const gananciaUsd = ventaUsd - compraUsd;
       const gananciaBob = ventaBob - compraBob;
@@ -454,6 +459,9 @@
         return;
       }
 
+      // Filtro de seguridad anti-NaN
+      const pNum = (val) => { let n = parseFloat(String(val).replace(',', '.')); return isNaN(n) ? 0 : n; };
+
       lista.forEach(p => {
         const imgHtml = p.imagen && p.imagen.length > 50 
           ? `<img src="${p.imagen}" class="border rounded shadow-sm" style="width: 45px; height: 45px; object-fit: cover;">`
@@ -465,10 +473,10 @@
             <td class="fw-bold text-dark small">${p.codigo_sku}</td>
             <td class="fw-bold text-dark">${p.nombre}</td>
             <td class="text-muted small">${p.categoria}</td>
-            <td class="text-muted small">$ ${Number(p.precio_compra_usd).toFixed(2)}</td>
-            <td class="text-muted small">Bs ${Number(p.precio_compra_bob).toFixed(2)}</td>
-            <td class="text-muted small">$ ${Number(p.precio_venta_usd).toFixed(2)}</td>
-            <td class="fw-bold text-dark small">Bs ${Number(p.precio_venta_bob).toFixed(2)}</td>
+            <td class="text-muted small">$ ${pNum(p.precio_compra_usd).toFixed(2)}</td>
+            <td class="text-muted small">Bs ${pNum(p.precio_compra_bob).toFixed(2)}</td>
+            <td class="text-muted small">$ ${pNum(p.precio_venta_usd).toFixed(2)}</td>
+            <td class="fw-bold text-dark small">Bs ${pNum(p.precio_venta_bob).toFixed(2)}</td>
             <td><span class="badge ${p.stock_actual <= p.stock_minimo ? 'bg-danger' : 'bg-success'}">${p.stock_actual}</span></td>
             <td class="text-end">
               <button class="btn btn-sm btn-outline-secondary" onclick="prepararEditarProducto('${p.codigo_sku}')"><i class="fa fa-edit"></i></button>
@@ -566,15 +574,19 @@
       document.getElementById('prod-stock').value = prod.stock_actual;
       document.getElementById('prod-stock').readOnly = true; 
       
+      // Filtro de seguridad
+      const pNum = (val) => { let n = parseFloat(String(val).replace(',', '.')); return isNaN(n) ? 0 : n; };
+
       document.getElementById('prod-cat').value = prod.categoria;
       document.getElementById('prod-nombre').value = prod.nombre;
       document.getElementById('prod-desc').value = prod.descripcion || '';
       document.getElementById('prod-marca').value = prod.marca || ''; 
       document.getElementById('prod-procedencia').value = prod.procedencia || ''; 
-      document.getElementById('prod-compra-usd').value = prod.precio_compra_usd;
-      document.getElementById('prod-compra-bob').value = prod.precio_compra_bob;
-      document.getElementById('prod-venta-usd').value = prod.precio_venta_usd;
-      document.getElementById('prod-venta-bob').value = prod.precio_venta_bob;
+      
+      document.getElementById('prod-compra-usd').value = pNum(prod.precio_compra_usd).toFixed(2);
+      document.getElementById('prod-compra-bob').value = pNum(prod.precio_compra_bob).toFixed(2);
+      document.getElementById('prod-venta-usd').value = pNum(prod.precio_venta_usd).toFixed(2);
+      document.getElementById('prod-venta-bob').value = pNum(prod.precio_venta_bob).toFixed(2);
       document.getElementById('prod-stock-min').value = prod.stock_minimo;
 
       if (prod.imagen && prod.imagen.length > 50) {
@@ -601,6 +613,9 @@
     }
 
     async function guardarProducto() {
+      // Filtro de seguridad anti-NaN
+      const pNum = (val) => { let n = parseFloat(String(val).replace(',', '.')); return isNaN(n) ? 0 : n; };
+
       const payload = {
         codigo_sku: document.getElementById('prod-sku').value,
         categoria: document.getElementById('prod-cat').value,
@@ -608,10 +623,10 @@
         descripcion: document.getElementById('prod-desc').value, 
         marca: document.getElementById('prod-marca').value.trim(), 
         procedencia: document.getElementById('prod-procedencia').value.trim(),
-        precio_compra_usd: document.getElementById('prod-compra-usd').value,
-        precio_compra_bob: document.getElementById('prod-compra-bob').value,
-        precio_venta_usd: document.getElementById('prod-venta-usd').value,
-        precio_venta_bob: document.getElementById('prod-venta-bob').value,
+        precio_compra_usd: pNum(document.getElementById('prod-compra-usd').value),
+        precio_compra_bob: pNum(document.getElementById('prod-compra-bob').value),
+        precio_venta_usd: pNum(document.getElementById('prod-venta-usd').value),
+        precio_venta_bob: pNum(document.getElementById('prod-venta-bob').value),
         stock_inicial: document.getElementById('prod-stock').value,
         stock_minimo: document.getElementById('prod-stock-min').value,
         imagen: document.getElementById('prod-imagen-base64').value
